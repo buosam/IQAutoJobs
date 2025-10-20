@@ -1,0 +1,10 @@
+flask
+gunicorn
+flask-cors
+flask-jwt-extended
+boto3
+botocore
+sqlalchemy
+alembic
+psycopg2-binary
+python-dotenv
