@@ -11,4 +11,3 @@ werkzeug
 Flask-SQLAlchemy
 Flask-Migrate
 psycopg2-binary
-psycopg2-binary
