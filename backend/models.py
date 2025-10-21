@@ -1,22 +1,48 @@
-from app import db
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import relationship
+from .db import Base
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
+class User(Base):
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    username = Column(String(80), unique=True, nullable=False)
+    password = Column(String(200), nullable=False)
+    user_type = Column(String(20), nullable=False) # 'job_seeker' or 'employer'
 
-class Job(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(120), nullable=False)
-    company = db.Column(db.String(120), nullable=False)
-    location = db.Column(db.String(120), nullable=False)
-    description = db.Column(db.Text, nullable=False)
-    employer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    employer = db.relationship('User', backref=db.backref('jobs', lazy=True))
+class UserProfile(Base):
+    __tablename__ = 'user_profile'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user = relationship('User', backref='profile')
+    name = Column(String(120))
+    headline = Column(String(120))
+    bio = Column(Text)
+    resume = Column(String(200))
 
-class Application(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=False)
-    user = db.relationship('User', backref=db.backref('applications', lazy=True))
-    job = db.relationship('Job', backref=db.backref('applications', lazy=True))
+class CompanyProfile(Base):
+    __tablename__ = 'company_profile'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    user = relationship('User', backref='company_profile')
+    name = Column(String(120), nullable=False)
+    description = Column(Text)
+    website = Column(String(120))
+    logo = Column(String(200))
+
+class Job(Base):
+    __tablename__ = 'job'
+    id = Column(Integer, primary_key=True)
+    title = Column(String(120), nullable=False)
+    company = Column(String(120), nullable=False)
+    location = Column(String(120), nullable=False)
+    description = Column(Text, nullable=False)
+    employer_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    employer = relationship('User', backref='jobs')
+
+class Application(Base):
+    __tablename__ = 'application'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    job_id = Column(Integer, ForeignKey('job.id'), nullable=False)
+    user = relationship('User', backref='applications')
+    job = relationship('Job', backref='applications')
