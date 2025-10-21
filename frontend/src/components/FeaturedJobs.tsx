@@ -8,6 +8,7 @@ interface Job {
   company: string;
   location: string;
   description: string;
+  applicants: string[];
 }
 
 const FeaturedJobs = () => {
@@ -18,7 +19,7 @@ const FeaturedJobs = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch('http://localhost:8080/jobs');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`);
         if (!response.ok) {
           throw new Error('Failed to fetch jobs');
         }

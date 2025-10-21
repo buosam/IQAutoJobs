@@ -18,7 +18,7 @@ const ProfilePage = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:8080/profile', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

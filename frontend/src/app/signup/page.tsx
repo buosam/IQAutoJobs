@@ -14,7 +14,7 @@ const SignupPage = () => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8080/register', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

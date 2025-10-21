@@ -22,7 +22,7 @@ const EmployersPage = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch('http://localhost:8080/jobs');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`);
         if (!response.ok) {
           throw new Error('Failed to fetch jobs');
         }
@@ -47,7 +47,7 @@ const EmployersPage = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/jobs', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ const EmployersPage = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/jobs/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${id}`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -103,6 +103,7 @@ const EmployersPage = () => {
             <label className="block text-gray-700">Title</label>
             <input
               type="text"
+              name="title"
               value={newJob.title}
               onChange={(e) => setNewJob({ ...newJob, title: e.target.value })}
               className="w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
@@ -113,6 +114,7 @@ const EmployersPage = () => {
             <label className="block text-gray-700">Company</label>
             <input
               type="text"
+              name="company"
               value={newJob.company}
               onChange={(e) => setNewJob({ ...newJob, company: e.target.value })}
               className="w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
@@ -123,6 +125,7 @@ const EmployersPage = () => {
             <label className="block text-gray-700">Location</label>
             <input
               type="text"
+              name="location"
               value={newJob.location}
               onChange={(e) => setNewJob({ ...newJob, location: e.target.value })}
               className="w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
@@ -132,6 +135,7 @@ const EmployersPage = () => {
           <div className="mb-4">
             <label className="block text-gray-700">Description</label>
             <textarea
+              name="description"
               value={newJob.description}
               onChange={(e) => setNewJob({ ...newJob, description: e.target.value })}
               className="w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-blue-300"
