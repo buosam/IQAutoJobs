@@ -21,7 +21,7 @@ const JobsPage = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await fetch('http://localhost:8080/jobs');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs`);
         if (!response.ok) {
           throw new Error('Failed to fetch jobs');
         }
@@ -45,7 +45,7 @@ const JobsPage = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/jobs/${id}/apply`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/jobs/${id}/apply`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

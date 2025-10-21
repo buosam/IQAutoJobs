@@ -4,6 +4,8 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 load_dotenv()
 
@@ -14,49 +16,26 @@ CORS(app, resources={r"/*": {"origins": ["*"]}})
 app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET_KEY')
 jwt = JWTManager(app)
 
-# In-memory user store
-users = {}
-user_id_counter = 1
+# Configure the database
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-jobs = [
-    {
-        'id': 1,
-        'title': 'Software Engineer',
-        'company': 'Google',
-        'location': 'Mountain View, CA',
-        'description': 'We are looking for a talented Software Engineer to join our team.',
-        'applicants': [],
-    },
-    {
-        'id': 2,
-        'title': 'Product Manager',
-        'company': 'Facebook',
-        'location': 'Menlo Park, CA',
-        'description': 'We are looking for a talented Product Manager to join our team.',
-        'applicants': [],
-    },
-    {
-        'id': 3,
-        'title': 'Data Scientist',
-        'company': 'Amazon',
-        'location': 'Seattle, WA',
-        'description': 'We are looking for a talented Data Scientist to join our team.',
-        'applicants': [],
-    },
-]
+from models import User, Job, Application
 
 @app.route('/register', methods=['POST'])
 def register():
-    global user_id_counter
     username = request.json.get('username', None)
     password = request.json.get('password', None)
     if not username or not password:
         return jsonify({"msg": "Missing username or password"}), 400
-    if username in [user['username'] for user in users.values()]:
+    if User.query.filter_by(username=username).first():
         return jsonify({"msg": "Username already exists"}), 400
 
-    users[user_id_counter] = {'username': username, 'password': generate_password_hash(password)}
-    user_id_counter += 1
+    new_user = User(username=username, password=generate_password_hash(password))
+    db.session.add(new_user)
+    db.session.commit()
 
     return jsonify({"msg": "User created successfully"}), 201
 
@@ -65,9 +44,9 @@ def login():
     username = request.json.get('username', None)
     password = request.json.get('password', None)
 
-    user = next((user for user in users.values() if user['username'] == username), None)
+    user = User.query.filter_by(username=username).first()
 
-    if not user or not check_password_hash(user['password'], password):
+    if not user or not check_password_hash(user.password, password):
         return jsonify({"msg": "Bad username or password"}), 401
 
     access_token = create_access_token(identity=username)
@@ -81,49 +60,73 @@ def profile():
 
 @app.route('/jobs', methods=['GET'])
 def get_jobs():
-    return jsonify(jobs)
+    jobs = Job.query.all()
+    return jsonify([{'id': job.id, 'title': job.title, 'company': job.company, 'location': job.location, 'description': job.description, 'applicants': [app.user.username for app in job.applications]} for job in jobs])
 
 @app.route('/jobs', methods=['POST'])
 @jwt_required()
 def create_job():
-    job = request.get_json()
-    job['applicants'] = []
-    jobs.append(job)
-    return jsonify(job), 201
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
+
+    data = request.get_json()
+    new_job = Job(
+        title=data['title'],
+        company=data['company'],
+        location=data['location'],
+        description=data['description'],
+        employer_id=user.id
+    )
+    db.session.add(new_job)
+    db.session.commit()
+
+    return jsonify({'id': new_job.id, 'title': new_job.title, 'company': new_job.company, 'location': new_job.location, 'description': new_job.description}), 201
 
 @app.route('/jobs/<int:job_id>', methods=['GET'])
 def get_job(job_id):
-    job = next((job for job in jobs if job['id'] == job_id), None)
+    job = Job.query.get(job_id)
     if job:
-        return jsonify(job)
+        return jsonify({'id': job.id, 'title': job.title, 'company': job.company, 'location': job.location, 'description': job.description})
     return jsonify({'error': 'Job not found'}), 404
 
 @app.route('/jobs/<int:job_id>', methods=['PUT'])
 @jwt_required()
 def update_job(job_id):
-    job = next((job for job in jobs if job['id'] == job_id), None)
+    job = Job.query.get(job_id)
     if job:
         data = request.get_json()
-        job.update(data)
-        return jsonify(job)
+        job.title = data['title']
+        job.company = data['company']
+        job.location = data['location']
+        job.description = data['description']
+        db.session.commit()
+        return jsonify({'id': job.id, 'title': job.title, 'company': job.company, 'location': job.location, 'description': job.description})
     return jsonify({'error': 'Job not found'}), 404
 
 @app.route('/jobs/<int:job_id>', methods=['DELETE'])
 @jwt_required()
 def delete_job(job_id):
-    global jobs
-    jobs = [job for job in jobs if job['id'] != job_id]
-    return '', 204
+    job = Job.query.get(job_id)
+    if job:
+        db.session.delete(job)
+        db.session.commit()
+        return '', 204
+    return jsonify({'error': 'Job not found'}), 404
 
 @app.route('/jobs/<int:job_id>/apply', methods=['POST'])
 @jwt_required()
 def apply_to_job(job_id):
-    job = next((job for job in jobs if job['id'] == job_id), None)
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(username=current_user).first()
+
+    job = Job.query.get(job_id)
     if job:
-        current_user = get_jwt_identity()
-        if current_user not in job['applicants']:
-            job['applicants'].append(current_user)
-        return jsonify(job)
+        application = Application.query.filter_by(user_id=user.id, job_id=job.id).first()
+        if not application:
+            new_application = Application(user_id=user.id, job_id=job.id)
+            db.session.add(new_application)
+            db.session.commit()
+        return jsonify({'msg': 'Application successful'})
     return jsonify({'error': 'Job not found'}), 404
 
 @app.get("/health")
