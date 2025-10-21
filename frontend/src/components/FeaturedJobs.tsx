@@ -1,27 +1,39 @@
-import React from 'react';
+'use client';
 
-const jobs = [
-  {
-    title: 'Software Engineer',
-    company: 'Google',
-    location: 'Mountain View, CA',
-    description: 'We are looking for a talented Software Engineer to join our team.',
-  },
-  {
-    title: 'Product Manager',
-    company: 'Facebook',
-    location: 'Menlo Park, CA',
-    description: 'We are looking for a talented Product Manager to join our team.',
-  },
-  {
-    title: 'Data Scientist',
-    company: 'Amazon',
-    location: 'Seattle, WA',
-    description: 'We are looking for a talented Data Scientist to join our team.',
-  },
-];
+import React, { useState, useEffect } from 'react';
+
+interface Job {
+  id: number;
+  title: string;
+  company: string;
+  location: string;
+  description: string;
+}
 
 const FeaturedJobs = () => {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/jobs');
+        if (!response.ok) {
+          throw new Error('Failed to fetch jobs');
+        }
+        const data = await response.json();
+        setJobs(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
   return (
     <section className="bg-gray-100">
       <div className="container mx-auto px-6 py-16">
@@ -29,8 +41,10 @@ const FeaturedJobs = () => {
           Featured Jobs
         </h2>
         <div className="mt-8 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {jobs.map((job, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-md p-6">
+          {loading && <p>Loading...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+          {jobs.map((job) => (
+            <div key={job.id} className="bg-white rounded-lg shadow-md p-6">
               <h3 className="text-xl font-bold text-gray-800">{job.title}</h3>
               <p className="mt-2 text-gray-600">{job.company}</p>
               <p className="mt-2 text-gray-600">{job.location}</p>
