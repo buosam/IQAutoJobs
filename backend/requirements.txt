@@ -18,3 +18,16 @@ python-dotenv==1.0.1
 SQLAlchemy==2.0.30
 typing-extensions==4.12.2
 Werkzeug==3.0.3
+flask
+gunicorn
+flask-cors
+flask-jwt-extended
+boto3
+botocore
+sqlalchemy
+alembic
+python-dotenv
+werkzeug
+Flask-SQLAlchemy
+Flask-Migrate
+psycopg2-binary
