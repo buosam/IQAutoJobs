@@ -4,12 +4,15 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from .extensions import db, migrate, jwt
+from extensions import db, migrate, jwt
 from . import routes
 
 logging.basicConfig(level=logging.INFO)
 
 def create_app(config_overrides=None):
+ 
+def create_app():
+  main
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
     if os.path.exists(dotenv_path):
         logging.info(f"Loading .env file from {dotenv_path}")
