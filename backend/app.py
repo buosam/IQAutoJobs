@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -10,16 +10,13 @@ from . import routes
 logging.basicConfig(level=logging.INFO)
 
 def create_app(config_overrides=None):
- 
-def create_app():
-  main
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
     if os.path.exists(dotenv_path):
         logging.info(f"Loading .env file from {dotenv_path}")
         load_dotenv(dotenv_path)
 
-    app = Flask(__name__)
-    CORS(app, resources={r"/*": {"origins": ["*"]}})
+    app = Flask(__name__, static_folder='../frontend/out')
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # Configure the database
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
@@ -43,5 +40,13 @@ def create_app():
     # Register blueprints
     app.register_blueprint(routes.bp)
     logging.info("Blueprints registered.")
+
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve(path):
+        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        else:
+            return send_from_directory(app.static_folder, 'index.html')
 
     return app
