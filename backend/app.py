@@ -5,8 +5,8 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 
-from backend.extensions import db, migrate, jwt
-from backend import routes
+from .extensions import db, migrate, jwt
+from . import routes
 
 logging.basicConfig(level=logging.INFO)
 
