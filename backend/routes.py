@@ -1,23 +1,31 @@
 from flask import Blueprint, jsonify, request
-from .models import User, Job, Application, UserProfile, CompanyProfile
-from .extensions import db
+from models import User, Job, Application, UserProfile, CompanyProfile
+from extensions import db
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
+import boto3
+from botocore.client import Config
+from botocore.exceptions import NoCredentialsError
 
 bp = Blueprint('routes', __name__)
 
-# In-memory data stores
-user_profiles = {}
-company_profiles = {}
-
-UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def create_r2_client():
+    return boto3.client(
+        service_name='s3',
+        endpoint_url=os.environ.get('R2_ENDPOINT_URL'),
+        aws_access_key_id=os.environ.get('R2_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.environ.get('R2_SECRET_ACCESS_KEY'),
+        region_name='auto',
+        config=Config(signature_version='s3v4')
+    )
 
 @bp.route('/register', methods=['POST'])
 def register():
@@ -56,24 +64,51 @@ def profile():
 
     if request.method == 'GET':
         if user.user_type == 'job_seeker':
-            profile = user_profiles.get(user.id)
+            profile = UserProfile.query.filter_by(user_id=user.id).first()
             if profile:
-                return jsonify(profile)
+                return jsonify({
+                    'name': profile.name,
+                    'headline': profile.headline,
+                    'bio': profile.bio,
+                    'resume': profile.resume
+                })
             return jsonify({'msg': 'Profile not found'}), 404
         else:
-            profile = company_profiles.get(user.id)
+            profile = CompanyProfile.query.filter_by(user_id=user.id).first()
             if profile:
-                return jsonify(profile)
+                return jsonify({
+                    'name': profile.name,
+                    'description': profile.description,
+                    'website': profile.website,
+                    'logo': profile.logo
+                })
             return jsonify({'msg': 'Profile not found'}), 404
 
     if request.method == 'POST' or request.method == 'PUT':
         data = request.get_json()
         if user.user_type == 'job_seeker':
-            user_profiles[user.id] = data
-            return jsonify(data)
+            profile = UserProfile.query.filter_by(user_id=user.id).first()
+            if not profile:
+                profile = UserProfile(user_id=user.id)
+                db.session.add(profile)
+
+            profile.name = data.get('name')
+            profile.headline = data.get('headline')
+            profile.bio = data.get('bio')
+            db.session.commit()
+            return jsonify({'msg': 'Profile updated successfully'})
         else:
-            company_profiles[user.id] = data
-            return jsonify(data)
+            profile = CompanyProfile.query.filter_by(user_id=user.id).first()
+            if not profile:
+                profile = CompanyProfile(user_id=user.id, name=data.get('name'))
+                db.session.add(profile)
+
+            profile.name = data.get('name')
+            profile.description = data.get('description')
+            profile.website = data.get('website')
+            profile.logo = data.get('logo')
+            db.session.commit()
+            return jsonify({'msg': 'Profile updated successfully'})
 
 @bp.route('/upload/resume', methods=['POST'])
 @jwt_required()
@@ -88,15 +123,27 @@ def upload_resume():
         return jsonify({'msg': 'No selected file'}), 400
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.makedirs(UPLOAD_FOLDER)
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
+        r2 = create_r2_client()
+        bucket_name = os.environ.get('R2_BUCKET_NAME')
 
-        profile = user_profiles.get(user.id, {})
-        profile['resume'] = filename
-        user_profiles[user.id] = profile
+        try:
+            r2.upload_fileobj(file, bucket_name, filename)
+            resume_url = f"{os.environ.get('R2_PUBLIC_URL')}/{filename}"
 
-        return jsonify({'msg': 'File uploaded successfully', 'filename': filename})
+            profile = UserProfile.query.filter_by(user_id=user.id).first()
+            if not profile:
+                profile = UserProfile(user_id=user.id)
+                db.session.add(profile)
+
+            profile.resume = resume_url
+            db.session.commit()
+
+            return jsonify({'msg': 'File uploaded successfully', 'url': resume_url})
+        except NoCredentialsError:
+            return jsonify({'msg': 'Credentials not available'}), 500
+        except Exception as e:
+            return jsonify({'msg': str(e)}), 500
+
     return jsonify({'msg': 'File type not allowed'}), 400
 
 @bp.route('/jobs', methods=['GET'])
