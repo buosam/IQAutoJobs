@@ -4,11 +4,11 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from .extensions import db, migrate, jwt
+from extensions import db, migrate, jwt
 from . import routes
 
 logging.basicConfig(level=logging.INFO)
-
+ 
 def create_app():
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
     if os.path.exists(dotenv_path):
