@@ -4,8 +4,8 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from .extensions import db, migrate, jwt
-from . import routes
+from extensions import db, migrate, jwt
+import routes
 
 logging.basicConfig(level=logging.INFO)
 
@@ -25,7 +25,7 @@ def create_app():
 
     # Setup the Flask-JWT-Extended extension
     app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET')
-    logging.info("JWT_SECRET_KEY loaded from environment.")
+    logging.info(f"JWT_SECRET_KEY: {app.config['JWT_SECRET_KEY']}")
 
     # Register extensions
     db.init_app(app)

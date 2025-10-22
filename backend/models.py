@@ -1,15 +1,15 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey
 from sqlalchemy.orm import relationship
-from .db import Base
+from extensions import db
 
-class User(Base):
+class User(db.Model):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     username = Column(String(80), unique=True, nullable=False)
     password = Column(String(200), nullable=False)
     user_type = Column(String(20), nullable=False) # 'job_seeker' or 'employer'
 
-class UserProfile(Base):
+class UserProfile(db.Model):
     __tablename__ = 'user_profile'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
@@ -19,7 +19,7 @@ class UserProfile(Base):
     bio = Column(Text)
     resume = Column(String(200))
 
-class CompanyProfile(Base):
+class CompanyProfile(db.Model):
     __tablename__ = 'company_profile'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
@@ -29,7 +29,7 @@ class CompanyProfile(Base):
     website = Column(String(120))
     logo = Column(String(200))
 
-class Job(Base):
+class Job(db.Model):
     __tablename__ = 'job'
     id = Column(Integer, primary_key=True)
     title = Column(String(120), nullable=False)
@@ -39,7 +39,7 @@ class Job(Base):
     employer_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     employer = relationship('User', backref='jobs')
 
-class Application(Base):
+class Application(db.Model):
     __tablename__ = 'application'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
