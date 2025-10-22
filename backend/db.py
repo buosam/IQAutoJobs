@@ -1,3 +1,3 @@
-from .extensions import db
+from backend.extensions import db
 
 Base = db.Model
