@@ -110,6 +110,9 @@ def create_job():
     current_user = get_jwt_identity()
     user = User.query.filter_by(username=current_user).first()
 
+    if user.user_type != 'employer':
+        return jsonify({"msg": "Forbidden"}), 403
+
     data = request.get_json()
     new_job = Job(
         title=data['title'],
