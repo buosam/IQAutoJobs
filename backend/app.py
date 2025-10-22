@@ -1,18 +1,16 @@
 import os
 import logging
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 
-from extensions import db, migrate, jwt
+from .extensions import db, migrate, jwt
 from . import routes
 
 logging.basicConfig(level=logging.INFO)
 
 def create_app(config_overrides=None):
- 
-def create_app():
-  main
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
     if os.path.exists(dotenv_path):
         logging.info(f"Loading .env file from {dotenv_path}")
@@ -43,5 +41,14 @@ def create_app():
     # Register blueprints
     app.register_blueprint(routes.bp)
     logging.info("Blueprints registered.")
+
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve(path):
+        safe_path = secure_filename(path)
+        if safe_path != "" and os.path.exists(os.path.join(app.static_folder, safe_path)):
+            return send_from_directory(app.static_folder, safe_path)
+        else:
+            return send_from_directory(app.static_folder, 'index.html')
 
     return app
