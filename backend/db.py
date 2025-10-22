@@ -1,3 +1,3 @@
-from sqlalchemy.ext.declarative import declarative_base
+from .extensions import db
 
-Base = declarative_base()
+Base = db.Model
