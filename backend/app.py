@@ -25,7 +25,7 @@ def create_app():
 
     # Setup the Flask-JWT-Extended extension
     app.config["JWT_SECRET_KEY"] = os.environ.get('JWT_SECRET')
-    logging.info(f"JWT_SECRET_KEY: {app.config['JWT_SECRET_KEY']}")
+    logging.info("JWT_SECRET_KEY loaded from environment.")
 
     # Register extensions
     db.init_app(app)
