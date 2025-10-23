@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
-from models import User, Job, Application, UserProfile, CompanyProfile
-from extensions import db
+from .models import User, Job, Application, UserProfile, CompanyProfile
+from .extensions import db
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
