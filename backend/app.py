@@ -1,9 +1,10 @@
 import os
 import logging
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import HTTPException
 
 from backend.extensions import db, migrate, jwt
 from backend import routes
@@ -38,6 +39,14 @@ def create_app(config_overrides=None):
     jwt.init_app(app)
     logging.info("Extensions registered.")
 
+    with app.app_context():
+        try:
+            db.engine.connect()
+            logging.info("Database connected successfully.")
+        except Exception as e:
+            logging.error(f"Database connection failed: {e}")
+            raise e
+
     # Register blueprints
     app.register_blueprint(routes.bp)
     logging.info("Blueprints registered.")
@@ -50,5 +59,12 @@ def create_app(config_overrides=None):
             return send_from_directory(app.static_folder, safe_path)
         else:
             return send_from_directory(app.static_folder, 'index.html')
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        if isinstance(e, HTTPException):
+            return e
+        logging.error(f"Unhandled exception: {e}", exc_info=True)
+        return jsonify(error="An unexpected error occurred"), 500
 
     return app
