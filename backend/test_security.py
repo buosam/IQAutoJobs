@@ -5,7 +5,7 @@ import unittest
 # Add the project root to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from backend.app import create_app
+from wsgi import create_app
 
 class SecurityTestCase(unittest.TestCase):
     def setUp(self):
@@ -16,8 +16,8 @@ class SecurityTestCase(unittest.TestCase):
         })
         self.client = self.app.test_client()
 
-        # Create a dummy file outside the static folder
-        self.dummy_file_path = os.path.join(self.app.root_path, '..', 'dummy.txt')
+        # Create a dummy file in a writable location
+        self.dummy_file_path = os.path.join(os.path.dirname(__file__), 'dummy.txt')
         with open(self.dummy_file_path, 'w') as f:
             f.write('secret')
 
