@@ -5,6 +5,8 @@ from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_requir
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
+import time
+from .s3 import upload_to_s3
 
 bp = Blueprint('routes', __name__)
 
@@ -87,16 +89,19 @@ def upload_resume():
     if file.filename == '':
         return jsonify({'msg': 'No selected file'}), 400
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        if not os.path.exists(UPLOAD_FOLDER):
-            os.makedirs(UPLOAD_FOLDER)
-        file.save(os.path.join(UPLOAD_FOLDER, filename))
+        filename = secure_filename(f"{user.id}_{file.filename}")
+        bucket_name = os.environ.get('R2_BUCKET_NAME')
 
-        profile = user_profiles.get(user.id, {})
-        profile['resume'] = filename
-        user_profiles[user.id] = profile
+        file_url = upload_to_s3(file, bucket_name, filename)
 
-        return jsonify({'msg': 'File uploaded successfully', 'filename': filename})
+        if file_url:
+            profile = user_profiles.get(user.id, {})
+            profile['resume'] = file_url
+            user_profiles[user.id] = profile
+            return jsonify({'msg': 'File uploaded successfully', 'file_url': file_url})
+        else:
+            return jsonify({'msg': 'File upload failed'}), 500
+
     return jsonify({'msg': 'File type not allowed'}), 400
 
 @bp.route('/jobs', methods=['GET'])
@@ -170,6 +175,29 @@ def apply_to_job(job_id):
         return jsonify({'msg': 'Application successful'})
     return jsonify({'error': 'Job not found'}), 404
 
-@bp.get("/healthz")
-def healthz():
-    return jsonify(ok=True), 200
+import psutil
+from datetime import datetime
+
+@bp.route('/health', methods=['GET'])
+def health_check():
+    try:
+        # Test database connection
+        db.session.execute('SELECT 1')
+        db_status = 'connected'
+    except Exception as e:
+        db_status = f'disconnected: {e}'
+
+    # System metrics
+    p = psutil.Process(os.getpid())
+    uptime_seconds = time.time() - p.create_time()
+    memory_usage = psutil.virtual_memory()._asdict()
+
+    response = {
+        'status': 'OK',
+        'timestamp': datetime.utcnow().isoformat(),
+        'database': db_status,
+        'memory': memory_usage,
+        'uptime': uptime_seconds
+    }
+
+    return jsonify(response), 200
