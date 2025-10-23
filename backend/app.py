@@ -54,11 +54,15 @@ def create_app(config_overrides=None):
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
-        safe_path = secure_filename(path)
-        if safe_path != "" and os.path.exists(os.path.join(app.static_folder, safe_path)):
-            return send_from_directory(app.static_folder, safe_path)
-        else:
-            return send_from_directory(app.static_folder, 'index.html')
+        if app.static_folder and os.path.exists(app.static_folder):
+            safe_path = secure_filename(path)
+            if safe_path != "" and os.path.exists(os.path.join(app.static_folder, safe_path)):
+                return send_from_directory(app.static_folder, safe_path)
+            else:
+                index_path = os.path.join(app.static_folder, 'index.html')
+                if os.path.exists(index_path):
+                    return send_from_directory(app.static_folder, 'index.html')
+        return jsonify({"message": "API is running. Frontend not built yet."}), 200
 
     @app.errorhandler(Exception)
     def handle_exception(e):

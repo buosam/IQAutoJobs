@@ -11,15 +11,16 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
-# --- Import your SQLAlchemy Base (declared in backend/db.py) ---
-from db import Base  # db.py must define: Base = declarative_base()
+# --- Import your SQLAlchemy Base and models ---
+from extensions import db
+from models import User, Job, Application, UserProfile, CompanyProfile
+
+# Use Flask-SQLAlchemy's Model.metadata
+target_metadata = db.Model.metadata
 
 # this is the Alembic Config object
 config = context.config
 fileConfig(config.config_file_name)
-
-# tell Alembic about your models’ metadata
-target_metadata = Base.metadata
 
 def run_migrations_offline():
     url = os.environ.get("DATABASE_URL")

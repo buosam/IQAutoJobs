@@ -1,48 +1,46 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
-from sqlalchemy.orm import relationship
-from .db import Base
+from .extensions import db
 
-class User(Base):
+class User(db.Model):
     __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
-    username = Column(String(80), unique=True, nullable=False)
-    password = Column(String(200), nullable=False)
-    user_type = Column(String(20), nullable=False) # 'job_seeker' or 'employer'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    user_type = db.Column(db.String(20), nullable=False)
 
-class UserProfile(Base):
+class UserProfile(db.Model):
     __tablename__ = 'user_profile'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    user = relationship('User', backref='profile')
-    name = Column(String(120))
-    headline = Column(String(120))
-    bio = Column(Text)
-    resume = Column(String(200))
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='profile')
+    name = db.Column(db.String(120))
+    headline = db.Column(db.String(120))
+    bio = db.Column(db.Text)
+    resume = db.Column(db.String(200))
 
-class CompanyProfile(Base):
+class CompanyProfile(db.Model):
     __tablename__ = 'company_profile'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    user = relationship('User', backref='company_profile')
-    name = Column(String(120), nullable=False)
-    description = Column(Text)
-    website = Column(String(120))
-    logo = Column(String(200))
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref='company_profile')
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text)
+    website = db.Column(db.String(120))
+    logo = db.Column(db.String(200))
 
-class Job(Base):
+class Job(db.Model):
     __tablename__ = 'job'
-    id = Column(Integer, primary_key=True)
-    title = Column(String(120), nullable=False)
-    company = Column(String(120), nullable=False)
-    location = Column(String(120), nullable=False)
-    description = Column(Text, nullable=False)
-    employer_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    employer = relationship('User', backref='jobs')
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(120), nullable=False)
+    company = db.Column(db.String(120), nullable=False)
+    location = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    employer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    employer = db.relationship('User', backref='jobs')
 
-class Application(Base):
+class Application(db.Model):
     __tablename__ = 'application'
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
-    job_id = Column(Integer, ForeignKey('job.id'), nullable=False)
-    user = relationship('User', backref='applications')
-    job = relationship('Job', backref='applications')
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=False)
+    user = db.relationship('User', backref='applications')
+    job = db.relationship('Job', backref='applications')
