@@ -170,6 +170,6 @@ def apply_to_job(job_id):
         return jsonify({'msg': 'Application successful'})
     return jsonify({'error': 'Job not found'}), 404
 
-@bp.get("/health")
-def health():
+@bp.get("/healthz")
+def healthz():
     return jsonify(ok=True), 200
