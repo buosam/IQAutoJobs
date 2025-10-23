@@ -31,7 +31,7 @@ A secondary contributing factor was an excessively long **Gunicorn timeout** (`1
 
 1.  **Deleted `Backend/` Directory**: The extraneous `Backend/` directory was removed to resolve the filesystem case-sensitivity conflict.
 2.  **Added Health Check Endpoint**: A `/healthz` endpoint was added to provide a fast, reliable signal of application health.
-3.  **Hardened `Procfile`**: The Gunicorn command in the `Procfile` was updated to `gunicorn wsgi:app --workers 2 --timeout 60 --bind 0.0.0.0:$PORT`. The timeout was reduced to a safer value, and the `--threads` flag was removed to simplify the concurrency model.
+3.  **Hardened `Procfile`**: The Gunicorn command in the `Procfile` was updated to `gunicorn wsgi:app --workers 2 --timeout 60 --bind 0.0.0.0:$PORT`. The timeout was reduced to a safer value, and the `--threads` flag was removed as it has no effect with the default sync worker type, thus clarifying the concurrency configuration.
 
 ## 6. Preventive Actions
 
