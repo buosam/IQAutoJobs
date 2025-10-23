@@ -178,8 +178,12 @@ def apply_to_job(job_id):
 import psutil
 from datetime import datetime
 
-@bp.route('/health', methods=['GET'])
-def health_check():
+@bp.route('/healthz', methods=['GET'])
+def healthz():
+    return jsonify(status="OK"), 200
+
+@bp.route('/readyz', methods=['GET'])
+def readyz():
     try:
         # Test database connection
         db.session.execute('SELECT 1')

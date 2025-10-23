@@ -39,13 +39,6 @@ def create_app(config_overrides=None):
     jwt.init_app(app)
     logging.info("Extensions registered.")
 
-    with app.app_context():
-        try:
-            db.engine.connect()
-            logging.info("Database connected successfully.")
-        except Exception as e:
-            logging.error(f"Database connection failed: {e}")
-            raise e
 
     # Register blueprints
     app.register_blueprint(routes.bp)
