@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import os
 import time
 from .s3 import upload_to_s3
+from sqlalchemy import text
 
 bp = Blueprint('routes', __name__)
 
@@ -186,7 +187,7 @@ def healthz():
 def readyz():
     try:
         # Test database connection
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         db_status = 'connected'
     except Exception as e:
         db_status = f'disconnected: {e}'
