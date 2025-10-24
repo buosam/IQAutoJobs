@@ -186,7 +186,8 @@ def healthz():
 @bp.route('/readyz', methods=['GET'])
 def readyz():
     try:
-        # Test database connection
+        # Test database connection by executing a simple query.
+        # The 'text()' construct is used to ensure compatibility with SQLAlchemy 2.0.
         db.session.execute(text('SELECT 1'))
         db_status = 'connected'
     except Exception as e:
