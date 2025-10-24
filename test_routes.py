@@ -3,12 +3,9 @@ import sys
 import unittest
 import json
 
-# Add the project root to the Python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from backend.app import create_app
-from backend.extensions import db
-from backend.models import User, Job, Application, UserProfile, CompanyProfile
+from app import create_app
+from extensions import db
+from models import User, Job, Application, UserProfile, CompanyProfile
 
 class RoutesTestCase(unittest.TestCase):
     def setUp(self):

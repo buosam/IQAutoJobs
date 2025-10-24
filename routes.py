@@ -1,12 +1,12 @@
 from flask import Blueprint, jsonify, request
-from .models import User, Job, Application, UserProfile, CompanyProfile
-from .extensions import db
+from models import User, Job, Application, UserProfile, CompanyProfile
+from extensions import db
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
 import time
-from .s3 import upload_to_s3
+from s3 import upload_to_s3
 from sqlalchemy import text
 
 bp = Blueprint('routes', __name__)
@@ -116,9 +116,13 @@ def upload_resume():
         file_url = upload_to_s3(file, bucket_name, filename)
 
         if file_url:
-            profile = user_profiles.get(user.id, {})
-            profile['resume'] = file_url
-            user_profiles[user.id] = profile
+            profile = UserProfile.query.filter_by(user_id=user.id).first()
+            if not profile:
+                profile = UserProfile(user_id=user.id)
+                db.session.add(profile)
+
+            profile.resume = file_url
+            db.session.commit()
             return jsonify({'msg': 'File uploaded successfully', 'file_url': file_url})
         else:
             return jsonify({'msg': 'File upload failed'}), 500

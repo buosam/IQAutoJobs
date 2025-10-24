@@ -26,7 +26,7 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash -c \"PYTHONPATH=. gunicorn wsgi:app --bind localhost:8000 --reload 2>&1 & sleep 2 && cd frontend && exec npm run dev\""
+args = "bash -c \"gunicorn app:app --bind localhost:8000 --reload 2>&1 & sleep 2 && cd frontend && exec npm run dev\""
 waitForPort = 5000
 
 [[ports]]
@@ -35,5 +35,5 @@ externalPort = 80
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["bash", "-c", "PYTHONPATH=. gunicorn wsgi:app --bind 0.0.0.0:5000 --workers 2 --timeout 30 & cd frontend && npm start"]
+run = ["bash", "-c", "gunicorn app:app --bind 0.0.0.0:5000 --workers 2 --timeout 30 & cd frontend && npm start"]
 build = ["bash", "-c", "cd frontend && npm run build"]
