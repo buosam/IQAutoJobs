@@ -1,10 +1,10 @@
 import os
 import logging
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, abort
 from flask_cors import CORS
 from dotenv import load_dotenv
-from werkzeug.utils import secure_filename
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, SecurityError
+from werkzeug.utils import safe_join
 
 from backend.extensions import db, migrate, jwt
 from backend import routes
@@ -47,14 +47,27 @@ def create_app(config_overrides=None):
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
-        if app.static_folder and os.path.exists(app.static_folder):
-            safe_path = secure_filename(path)
-            if safe_path != "" and os.path.exists(os.path.join(app.static_folder, safe_path)):
-                return send_from_directory(app.static_folder, safe_path)
-            else:
-                index_path = os.path.join(app.static_folder, 'index.html')
-                if os.path.exists(index_path):
-                    return send_from_directory(app.static_folder, 'index.html')
+        static_root = app.static_folder
+
+        if not static_root or not os.path.isdir(static_root):
+            return jsonify({"message": "API is running. Frontend not built yet."}), 200
+
+        if path:
+            try:
+                candidate = safe_join(static_root, path)
+            except (SecurityError, ValueError):
+                abort(404)
+
+            if candidate is None:
+                abort(404)
+
+            if candidate and os.path.isfile(candidate):
+                relative_path = os.path.relpath(candidate, static_root)
+                return send_from_directory(static_root, relative_path)
+        index_path = os.path.join(static_root, 'index.html')
+        if os.path.isfile(index_path):
+            return send_from_directory(static_root, 'index.html')
+
         return jsonify({"message": "API is running. Frontend not built yet."}), 200
 
     @app.errorhandler(Exception)
