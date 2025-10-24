@@ -56,6 +56,11 @@ def create_app(config_overrides=None):
             try:
                 candidate = safe_join(static_root, path)
             except (SecurityError, ValueError):
+                logging.exception("Security or value error during safe_join for path %s", path)
+                abort(404)
+
+            if candidate is None:
+                # safe_join returns None when the resolved path would escape static_root
                 abort(404)
 
             if candidate is None:

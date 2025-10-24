@@ -1,3 +1,4 @@
+import errno
 import os
 import sys
 import unittest
@@ -49,12 +50,18 @@ class SecurityTestCase(unittest.TestCase):
         if os.path.isdir(self.nested_dir):
             try:
                 os.rmdir(self.nested_dir)
+            except OSError as exc:
+                if exc.errno not in {errno.ENOTEMPTY, errno.EEXIST}:
+                    raise
             except OSError:
                 pass
 
         if os.path.isdir(self.static_dir):
             try:
                 os.rmdir(self.static_dir)
+            except OSError as exc:
+                if exc.errno not in {errno.ENOTEMPTY, errno.EEXIST}:
+                    raise
             except OSError:
                 pass
 
