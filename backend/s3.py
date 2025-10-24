@@ -32,7 +32,7 @@ def upload_to_s3(file, bucket_name, object_name):
     try:
         s3 = get_s3_client()
         if s3 is None:
-            raise Exception("S3 client could not be initialized.")
+            return None
         s3.upload_fileobj(file, bucket_name, object_name)
         return f"{os.environ.get('R2_ENDPOINT')}/{bucket_name}/{object_name}"
     except Exception as e:
