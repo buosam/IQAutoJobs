@@ -96,6 +96,8 @@ class RoutesTestCase(unittest.TestCase):
         # Initially, the profile should not be found
         response = self.client.get('/profile', headers=headers)
         self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertEqual(data['msg'], "Profile not found")
 
         # Create a profile
         profile_data = {"name": "Test User", "headline": "Test Headline"}
@@ -132,6 +134,7 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(data['name'], "Updated User")
 
     def _create_user_and_get_token(self, username, password, user_type):
+        """Helper function to register a user and return an access token."""
         self.client.post('/register', json={
             "username": username,
             "password": password,
@@ -192,6 +195,11 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertEqual(data['msg'], "Application successful")
+
+        # Verify the application was created in the database
+        user = User.query.filter_by(username="jobseeker").first()
+        application = Application.query.filter_by(user_id=user.id, job_id=job_id).first()
+        self.assertIsNotNone(application)
 
     def test_healthz(self):
         response = self.client.get('/healthz')
