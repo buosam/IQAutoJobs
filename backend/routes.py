@@ -11,10 +11,6 @@ from sqlalchemy import text
 
 bp = Blueprint('routes', __name__)
 
-# In-memory data stores
-user_profiles = {}
-company_profiles = {}
-
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
 
@@ -57,26 +53,50 @@ def profile():
     current_user = get_jwt_identity()
     user = User.query.filter_by(username=current_user).first()
 
-    if request.method == 'GET':
-        if user.user_type == 'job_seeker':
-            profile = user_profiles.get(user.id)
-            if profile:
-                return jsonify(profile)
-            return jsonify({'msg': 'Profile not found'}), 404
-        else:
-            profile = company_profiles.get(user.id)
-            if profile:
-                return jsonify(profile)
-            return jsonify({'msg': 'Profile not found'}), 404
+    if user.user_type == 'job_seeker':
+        profile_model = UserProfile
+        profile_query = UserProfile.query.filter_by(user_id=user.id)
+    else:
+        profile_model = CompanyProfile
+        profile_query = CompanyProfile.query.filter_by(user_id=user.id)
 
-    if request.method == 'POST' or request.method == 'PUT':
-        data = request.get_json()
-        if user.user_type == 'job_seeker':
-            user_profiles[user.id] = data
-            return jsonify(data)
-        else:
-            company_profiles[user.id] = data
-            return jsonify(data)
+    if request.method == 'GET':
+        profile = profile_query.first()
+        if profile:
+            return jsonify({
+                "name": profile.name,
+                "headline": profile.headline,
+                "bio": profile.bio,
+            })
+        return jsonify({'msg': 'Profile not found'}), 404
+
+    data = request.get_json()
+
+    if request.method == 'POST':
+        profile = profile_query.first()
+        if profile:
+            return jsonify({'msg': 'Profile already exists, use PUT to update'}), 400
+
+        new_profile = profile_model(
+            user_id=user.id,
+            name=data.get('name'),
+            headline=data.get('headline'),
+            bio=data.get('bio')
+        )
+        db.session.add(new_profile)
+        db.session.commit()
+        return jsonify({'msg': 'Profile created'}), 201
+
+    if request.method == 'PUT':
+        profile = profile_query.first()
+        if not profile:
+            return jsonify({'msg': 'Profile not found, use POST to create'}), 404
+
+        profile.name = data.get('name', profile.name)
+        profile.headline = data.get('headline', profile.headline)
+        profile.bio = data.get('bio', profile.bio)
+        db.session.commit()
+        return jsonify({'msg': 'Profile updated'})
 
 @bp.route('/upload/resume', methods=['POST'])
 @jwt_required()

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from backend.app import create_app
 from backend.extensions import db
-from backend.models import User, Job, Application
+from backend.models import User, Job, Application, UserProfile, CompanyProfile
 
 class RoutesTestCase(unittest.TestCase):
     def setUp(self):
@@ -80,58 +80,36 @@ class RoutesTestCase(unittest.TestCase):
         data = json.loads(response.data)
         self.assertEqual(data['msg'], "Bad username or password")
 
-    def test_get_job_seeker_profile(self):
-        self.client.post('/register', json={
-            "username": "testuser",
-            "password": "testpassword",
-            "user_type": "job_seeker"
-        })
-        response = self.client.post('/login', json={
-            "username": "testuser",
-            "password": "testpassword"
-        })
-        access_token = json.loads(response.data)['access_token']
-        headers = {'Authorization': f'Bearer {access_token}'}
+    def test_job_seeker_profile_crud(self):
+        token = self._create_user_and_get_token("testuser", "password", "job_seeker")
+        headers = {'Authorization': f'Bearer {token}'}
 
         # Initially, the profile should not be found
         response = self.client.get('/profile', headers=headers)
         self.assertEqual(response.status_code, 404)
-        data = json.loads(response.data)
-        self.assertEqual(data['msg'], "Profile not found")
+        self.assertEqual(json.loads(response.data)['msg'], "Profile not found")
 
         # Create a profile
-        profile_data = {"name": "Test User", "headline": "Test Headline"}
-        self.client.post('/profile', json=profile_data, headers=headers)
+        profile_data = {"name": "Test User", "headline": "Test Headline", "bio": "A bio."}
+        response = self.client.post('/profile', json=profile_data, headers=headers)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(json.loads(response.data)['msg'], "Profile created")
 
-        # Now, the profile should be found
-        response = self.client.get('/profile', headers=headers)
-        self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['name'], "Test User")
-
-    def test_update_job_seeker_profile(self):
-        self.client.post('/register', json={
-            "username": "testuser",
-            "password": "testpassword",
-            "user_type": "job_seeker"
-        })
-        response = self.client.post('/login', json={
-            "username": "testuser",
-            "password": "testpassword"
-        })
-        access_token = json.loads(response.data)['access_token']
-        headers = {'Authorization': f'Bearer {access_token}'}
-
-        # Create a profile
-        profile_data = {"name": "Test User", "headline": "Test Headline"}
-        self.client.post('/profile', json=profile_data, headers=headers)
+        # Verify the profile was created in the database
+        user = User.query.filter_by(username="testuser").first()
+        profile = UserProfile.query.filter_by(user_id=user.id).first()
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.name, "Test User")
 
         # Update the profile
         updated_profile_data = {"name": "Updated User", "headline": "Updated Headline"}
         response = self.client.put('/profile', json=updated_profile_data, headers=headers)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.data)
-        self.assertEqual(data['name'], "Updated User")
+        self.assertEqual(json.loads(response.data)['msg'], "Profile updated")
+
+        # Verify the profile was updated in the database
+        db.session.refresh(profile)
+        self.assertEqual(profile.name, "Updated User")
 
     def _create_user_and_get_token(self, username, password, user_type):
         """Helper function to register a user and return an access token."""
