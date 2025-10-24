@@ -53,6 +53,8 @@ class SecurityTestCase(unittest.TestCase):
             except OSError as exc:
                 if exc.errno not in {errno.ENOTEMPTY, errno.EEXIST}:
                     raise
+            except OSError:
+                pass
 
         if os.path.isdir(self.static_dir):
             try:
@@ -60,6 +62,8 @@ class SecurityTestCase(unittest.TestCase):
             except OSError as exc:
                 if exc.errno not in {errno.ENOTEMPTY, errno.EEXIST}:
                     raise
+            except OSError:
+                pass
 
     def test_path_traversal(self):
         # Attempt to access the dummy file using path traversal

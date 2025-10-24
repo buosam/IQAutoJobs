@@ -63,6 +63,9 @@ def create_app(config_overrides=None):
                 # safe_join returns None when the resolved path would escape static_root
                 abort(404)
 
+            if candidate is None:
+                abort(404)
+
             if candidate and os.path.isfile(candidate):
                 relative_path = os.path.relpath(candidate, static_root)
                 return send_from_directory(static_root, relative_path)
