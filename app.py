@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 from werkzeug.exceptions import HTTPException, SecurityError
 from werkzeug.utils import safe_join
 
-from backend.extensions import db, migrate, jwt
-from backend import routes
+from extensions import db, migrate, jwt
+import routes
 
 logging.basicConfig(level=logging.INFO)
 
