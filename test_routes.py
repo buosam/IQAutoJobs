@@ -25,7 +25,7 @@ class RoutesTestCase(unittest.TestCase):
         self.app_context.pop()
 
     def test_register_user(self):
-        response = self.client.post('/register', json={
+        response = self.client.post('/api/register', json={
             "username": "testuser",
             "password": "testpassword",
             "user_type": "job_seeker"
@@ -35,12 +35,12 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(data['msg'], "User created successfully")
 
     def test_register_existing_user(self):
-        self.client.post('/register', json={
+        self.client.post('/api/register', json={
             "username": "testuser",
             "password": "testpassword",
             "user_type": "job_seeker"
         })
-        response = self.client.post('/register', json={
+        response = self.client.post('/api/register', json={
             "username": "testuser",
             "password": "testpassword",
             "user_type": "job_seeker"
@@ -50,12 +50,12 @@ class RoutesTestCase(unittest.TestCase):
         self.assertEqual(data['msg'], "Username already exists")
 
     def test_login_user(self):
-        self.client.post('/register', json={
+        self.client.post('/api/register', json={
             "username": "testuser",
             "password": "testpassword",
             "user_type": "job_seeker"
         })
-        response = self.client.post('/login', json={
+        response = self.client.post('/api/login', json={
             "username": "testuser",
             "password": "testpassword"
         })
@@ -64,12 +64,12 @@ class RoutesTestCase(unittest.TestCase):
         self.assertIn('access_token', data)
 
     def test_login_invalid_credentials(self):
-        self.client.post('/register', json={
+        self.client.post('/api/register', json={
             "username": "testuser",
             "password": "testpassword",
             "user_type": "job_seeker"
         })
-        response = self.client.post('/login', json={
+        response = self.client.post('/api/login', json={
             "username": "testuser",
             "password": "wrongpassword"
         })
@@ -82,13 +82,13 @@ class RoutesTestCase(unittest.TestCase):
         headers = {'Authorization': f'Bearer {token}'}
 
         # Initially, the profile should not be found
-        response = self.client.get('/profile', headers=headers)
+        response = self.client.get('/api/profile', headers=headers)
         self.assertEqual(response.status_code, 404)
         self.assertEqual(json.loads(response.data)['msg'], "Profile not found")
 
         # Create a profile
         profile_data = {"name": "Test User", "headline": "Test Headline", "bio": "A bio."}
-        response = self.client.post('/profile', json=profile_data, headers=headers)
+        response = self.client.post('/api/profile', json=profile_data, headers=headers)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(json.loads(response.data)['msg'], "Profile created")
 
@@ -100,7 +100,7 @@ class RoutesTestCase(unittest.TestCase):
 
         # Update the profile
         updated_profile_data = {"name": "Updated User", "headline": "Updated Headline"}
-        response = self.client.put('/profile', json=updated_profile_data, headers=headers)
+        response = self.client.put('/api/profile', json=updated_profile_data, headers=headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.data)['msg'], "Profile updated")
 
@@ -110,12 +110,12 @@ class RoutesTestCase(unittest.TestCase):
 
     def _create_user_and_get_token(self, username, password, user_type):
         """Helper function to register a user and return an access token."""
-        self.client.post('/register', json={
+        self.client.post('/api/register', json={
             "username": username,
             "password": password,
             "user_type": user_type
         })
-        response = self.client.post('/login', json={
+        response = self.client.post('/api/login', json={
             "username": username,
             "password": password
         })
@@ -130,7 +130,7 @@ class RoutesTestCase(unittest.TestCase):
             "location": "Testville",
             "description": "A test job."
         }
-        response = self.client.post('/jobs', json=job_data, headers=headers)
+        response = self.client.post('/api/jobs', json=job_data, headers=headers)
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data)
         self.assertEqual(data['title'], "Software Engineer")
@@ -144,8 +144,8 @@ class RoutesTestCase(unittest.TestCase):
             "location": "Testville",
             "description": "A test job."
         }
-        self.client.post('/jobs', json=job_data, headers=headers)
-        response = self.client.get('/jobs')
+        self.client.post('/api/jobs', json=job_data, headers=headers)
+        response = self.client.get('/api/jobs')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertEqual(len(data), 1)
@@ -162,11 +162,11 @@ class RoutesTestCase(unittest.TestCase):
             "location": "Testville",
             "description": "A test job."
         }
-        response = self.client.post('/jobs', json=job_data, headers=headers_employer)
+        response = self.client.post('/api/jobs', json=job_data, headers=headers_employer)
         job_id = json.loads(response.data)['id']
 
         headers_job_seeker = {'Authorization': f'Bearer {job_seeker_token}'}
-        response = self.client.post(f'/jobs/{job_id}/apply', headers=headers_job_seeker)
+        response = self.client.post(f'/api/jobs/{job_id}/apply', headers=headers_job_seeker)
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertEqual(data['msg'], "Application successful")
@@ -177,13 +177,13 @@ class RoutesTestCase(unittest.TestCase):
         self.assertIsNotNone(application)
 
     def test_healthz(self):
-        response = self.client.get('/healthz')
+        response = self.client.get('/api/healthz')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertEqual(data['status'], "OK")
 
     def test_readyz(self):
-        response = self.client.get('/readyz')
+        response = self.client.get('/api/readyz')
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
         self.assertEqual(data['status'], "OK")

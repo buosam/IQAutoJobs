@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import os
 import time
+import logging
 from s3 import upload_to_s3
 from sqlalchemy import text
 
@@ -213,21 +214,7 @@ def readyz():
         # Test database connection by executing a simple query.
         # The 'text()' construct is used to ensure compatibility with SQLAlchemy 2.0.
         db.session.execute(text('SELECT 1'))
-        db_status = 'connected'
+        return jsonify(status="OK", database="connected"), 200
     except Exception as e:
-        db_status = f'disconnected: {e}'
-
-    # System metrics
-    p = psutil.Process(os.getpid())
-    uptime_seconds = time.time() - p.create_time()
-    memory_usage = psutil.virtual_memory()._asdict()
-
-    response = {
-        'status': 'OK',
-        'timestamp': datetime.utcnow().isoformat(),
-        'database': db_status,
-        'memory': memory_usage,
-        'uptime': uptime_seconds
-    }
-
-    return jsonify(response), 200
+        logging.error("Readiness check failed: database connection error.", exc_info=e)
+        return jsonify(status="UNAVAILABLE", database="disconnected"), 503
