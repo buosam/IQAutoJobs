@@ -1,2 +1,2 @@
-release: alembic upgrade head
+release: alembic upgrade head && cd frontend && npm run build
 web: gunicorn app:app --workers 2 --timeout 30 --bind 0.0.0.0:$PORT

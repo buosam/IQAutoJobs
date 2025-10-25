@@ -50,7 +50,7 @@ def create_app(config_overrides=None):
     @app.route('/<path:path>')
     def serve(path):
         candidate = safe_join(app.static_folder, path)
-        if path != "" and candidate and os.path.exists(candidate):
+        if path != "" and candidate and os.path.isfile(candidate):
             return send_from_directory(app.static_folder, path)
         return send_from_directory(app.static_folder, 'index.html')
 
