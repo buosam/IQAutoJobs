@@ -21,7 +21,7 @@ def create_app(config_overrides=None):
     CORS(app, resources={r"/*": {"origins": ["*"]}})
 
     # Configure the database
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///:memory:')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Setup the Flask-JWT-Extended extension
@@ -83,3 +83,5 @@ def create_app(config_overrides=None):
         return jsonify(error="An unexpected error occurred"), 500
 
     return app
+
+app = create_app()
