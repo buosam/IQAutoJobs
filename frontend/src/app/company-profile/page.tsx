@@ -38,7 +38,11 @@ const CompanyProfilePage = () => {
         const data = await response.json();
         setProfile(data);
       } catch (err) {
-        setError(err.message);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -71,7 +75,11 @@ const CompanyProfilePage = () => {
 
       alert('Profile updated successfully!');
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 

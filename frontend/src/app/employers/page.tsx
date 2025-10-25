@@ -29,7 +29,11 @@ const EmployersPage = () => {
         const data = await response.json();
         setJobs(data);
       } catch (err) {
-        setError(err.message);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -64,7 +68,11 @@ const EmployersPage = () => {
       setJobs([...jobs, data]);
       setNewJob({ title: '', company: '', location: '', description: '' });
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 
@@ -89,7 +97,11 @@ const EmployersPage = () => {
 
       setJobs(jobs.filter((job) => job.id !== id));
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 

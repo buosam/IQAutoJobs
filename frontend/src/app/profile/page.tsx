@@ -39,7 +39,11 @@ const ProfilePage = () => {
         const data = await response.json();
         setProfile(data);
       } catch (err) {
-        setError(err.message);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -72,7 +76,11 @@ const ProfilePage = () => {
 
       alert('Profile updated successfully!');
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 
@@ -103,7 +111,11 @@ const ProfilePage = () => {
       setProfile({ ...profile, resume: data.filename });
       alert('Resume uploaded successfully!');
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 

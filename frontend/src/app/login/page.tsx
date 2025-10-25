@@ -30,7 +30,11 @@ const LoginPage = () => {
       localStorage.setItem('token', data.access_token);
       router.push('/profile');
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 

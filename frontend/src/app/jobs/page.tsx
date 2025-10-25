@@ -28,7 +28,11 @@ const JobsPage = () => {
         const data = await response.json();
         setJobs(data);
       } catch (err) {
-        setError(err.message);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
       } finally {
         setLoading(false);
       }
@@ -58,7 +62,11 @@ const JobsPage = () => {
 
       alert('Successfully applied for the job!');
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
     }
   };
 
