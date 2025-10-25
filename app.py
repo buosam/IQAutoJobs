@@ -17,9 +17,9 @@ def create_app(config_overrides=None):
         logging.info(f"Loading .env file from {dotenv_path}")
         load_dotenv(dotenv_path)
 
-    static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), 'frontend', 'build'))
-
-    app = Flask(__name__, static_folder=static_folder, static_url_path='/')
+    # The static folder is now at the root of the project.
+    static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend', 'build')
+    app = Flask(__name__, static_folder=static_folder, static_url_path='')
     CORS(app, resources={r"/*": {"origins": ["*"]}})
 
     # Configure the database
