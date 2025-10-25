@@ -17,7 +17,9 @@ def create_app(config_overrides=None):
         logging.info(f"Loading .env file from {dotenv_path}")
         load_dotenv(dotenv_path)
 
-    app = Flask(__name__)
+    static_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), 'frontend', 'build'))
+
+    app = Flask(__name__, static_folder=static_folder, static_url_path='/')
     CORS(app, resources={r"/*": {"origins": ["*"]}})
 
     # Configure the database
@@ -41,39 +43,16 @@ def create_app(config_overrides=None):
 
 
     # Register blueprints
-    app.register_blueprint(routes.bp)
+    app.register_blueprint(routes.bp, url_prefix='/api')
     logging.info("Blueprints registered.")
 
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
-        static_root = app.static_folder
-
-        if not static_root or not os.path.isdir(static_root):
-            return jsonify({"message": "API is running. Frontend not built yet."}), 200
-
-        if path:
-            try:
-                candidate = safe_join(static_root, path)
-            except (SecurityError, ValueError):
-                logging.exception("Security or value error during safe_join for path %s", path)
-                abort(404)
-
-            if candidate is None:
-                # safe_join returns None when the resolved path would escape static_root
-                abort(404)
-
-            if candidate is None:
-                abort(404)
-
-            if candidate and os.path.isfile(candidate):
-                relative_path = os.path.relpath(candidate, static_root)
-                return send_from_directory(static_root, relative_path)
-        index_path = os.path.join(static_root, 'index.html')
-        if os.path.isfile(index_path):
-            return send_from_directory(static_root, 'index.html')
-
-        return jsonify({"message": "API is running. Frontend not built yet."}), 200
+        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+            return send_from_directory(app.static_folder, path)
+        else:
+            return send_from_directory(app.static_folder, 'index.html')
 
     @app.errorhandler(Exception)
     def handle_exception(e):
