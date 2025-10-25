@@ -18,7 +18,7 @@ def create_app(config_overrides=None):
         load_dotenv(dotenv_path)
 
     # The static folder is now at the root of the project.
-    static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend', 'build')
+    static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend', 'out')
     app = Flask(__name__, static_folder=static_folder, static_url_path='')
     CORS(app, resources={r"/*": {"origins": ["*"]}})
 
