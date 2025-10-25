@@ -1,39 +1,30 @@
-# Incident Report: 502 Bad Gateway on Railway Deployment
+# Incident Report: Homepage 502 Bad Gateway
 
-## Timeline of Events
+## Summary
 
-*   **[Start Time]**: The initial report of "502 Bad Gateway" errors on the production deployment was received.
-*   **[Investigation Start]**: An investigation was initiated to determine the root cause of the errors.
-*   **[Initial Hypothesis]**: The initial investigation identified a case-sensitivity issue with a `Backend/` directory in the repository, which was hypothesized to be causing a `ModuleNotFoundError` on Railway's case-sensitive filesystem.
-*   **[First Fix Attempt]**: The `Backend/` directory was removed, the Gunicorn timeout was adjusted, and a `/healthz` endpoint was added. The changes were deployed, but the "502 Bad Gateway" error persisted.
-*   **[Second Hypothesis]**: Further investigation of the logs revealed that the `ModuleNotFoundError: No module named 'backend'` was still occurring. This indicated that the Python import path was not correctly configured, preventing Gunicorn from finding the application module.
-*   **[Final Fix]**: The `Procfile` was updated to prepend the current directory to the `PYTHONPATH`, allowing the Python interpreter to locate the `backend` module.
-*   **[End Time]**: The final fix was deployed, and the "502 Bad Gateway" error was resolved.
+On 2025-10-25, the application's homepage (`/`) began returning a 502 Bad Gateway error on the Railway deployment. This prevented users from accessing the site. The root cause was determined to be a misconfigured deployment process that failed to install the required Python dependencies before starting the application server.
 
-## Impact Scope
+## Root Cause Analysis
 
-*   **Duration**: The incident lasted from the initial report until the final fix was deployed.
-*   **Endpoints Affected**: All endpoints served by the Flask application were affected, resulting in a complete outage of the backend service.
+The investigation revealed the following:
 
-## Root Cause(s) with Evidence
+1.  **Error Symptom**: The homepage returned a 502 Bad Gateway, indicating that the upstream application server (Gunicorn) was not running or was crashing.
+2.  **Local Reproduction**: I was able to reproduce the issue locally by attempting to run the application with `python app.py` in a clean environment. This resulted in a `ModuleNotFoundError: No module named 'flask'`, which confirmed that the application could not start without its dependencies.
+3.  **Deployment Configuration**: The `Procfile` used for deployment on Railway contained a `web` process that started Gunicorn. However, there was no command to install the Python dependencies from `requirements.txt` before starting the application. The `release` command in the `Procfile` is the standard place for this, but it was not being executed or was failing silently.
 
-The root cause of the "502 Bad Gateway" error was a `ModuleNotFoundError: No module named 'backend'` that occurred when Gunicorn attempted to start the Flask application. This was caused by an incomplete Python import path.
+The application server was failing to start because the necessary Python libraries (including Flask itself) were not installed in the environment. Gunicorn could not load the `app` object from `app.py`, which caused the Gunicorn process to exit and the Railway proxy to return a 502 error.
 
-The evidence for this root cause was found in the Railway deployment logs, which clearly showed the `ModuleNotFoundError` traceback.
+## Remediation Plan
 
-## Immediate Fixes Applied
+The following steps will be taken to resolve the issue:
 
-The immediate fix was to modify the `web` process in the `Procfile` to prepend the current directory to the `PYTHONPATH`. The new command is:
+1.  **Update `Procfile`**: The `release` command in the `Procfile` will be updated to include `pip install -r requirements.txt`. This will ensure that all dependencies are installed before the `web` process is started.
+2.  **Deployment**: The updated `Procfile` will be deployed to Railway, which will trigger a new release and install the dependencies.
+3.  **Verification**: After deployment, the homepage will be monitored to confirm that it loads successfully and the 502 error is resolved.
 
-```
-web: PYTHONPATH=. gunicorn wsgi:app --workers 2 --timeout 30 --bind 0.0.0.0:$PORT
-```
+## Verification Steps
 
-This change allows the Python interpreter to correctly locate and import the `backend` module, resolving the `ModuleNotFoundError` and allowing the application to start successfully.
+To verify the fix, the following actions will be taken:
 
-## Preventive Actions
-
-*   **Standardized Project Structure**: Ensure that all new Python projects follow a standard, well-documented project structure to avoid import path issues.
-*   **Local Testing with Production-like Commands**: Before deploying, test the application locally using the same Gunicorn command that will be used in production. This can help to catch startup errors before they reach the production environment.
-*   **Improved Health Checks**: The `/healthz` endpoint that was added will help to quickly identify whether the application is running, but a more comprehensive `/readyz` endpoint that checks database connectivity could provide even better insight into the application's health.
-*   **Runbook for Common Errors**: The `runbook.md` that was created should be expanded to include troubleshooting steps for common errors like `ModuleNotFoundError`.
+1.  **Local Verification**: Before submitting the change, the application will be run locally to ensure that the updated `Procfile` does not introduce any new issues.
+2.  **Post-Deployment Monitoring**: After deploying the fix to Railway, the application logs will be monitored for any startup errors. The homepage URL will be accessed to confirm that it returns a 200 OK status code and renders the expected content.
