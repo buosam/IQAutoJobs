@@ -49,10 +49,10 @@ def create_app(config_overrides=None):
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve(path):
-        if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        candidate = safe_join(app.static_folder, path)
+        if path != "" and candidate and os.path.exists(candidate):
             return send_from_directory(app.static_folder, path)
-        else:
-            return send_from_directory(app.static_folder, 'index.html')
+        return send_from_directory(app.static_folder, 'index.html')
 
     @app.errorhandler(Exception)
     def handle_exception(e):

@@ -216,5 +216,5 @@ def readyz():
         db.session.execute(text('SELECT 1'))
         return jsonify(status="OK", database="connected"), 200
     except Exception as e:
-        logging.error("Readiness check failed: database connection error.", exc_info=e)
+        logging.error("Readiness check failed: database connection error.", exc_info=True)
         return jsonify(status="UNAVAILABLE", database="disconnected"), 503
