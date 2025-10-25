@@ -4,6 +4,7 @@ import unittest
 import json
 
 from app import create_app
+from unittest.mock import patch
 from extensions import db
 from models import User, Job, Application, UserProfile, CompanyProfile
 
@@ -188,6 +189,15 @@ class RoutesTestCase(unittest.TestCase):
         data = json.loads(response.data)
         self.assertEqual(data['status'], "OK")
         self.assertEqual(data['database'], "connected")
+
+    @patch('extensions.db.session')
+    def test_readyz_db_failure(self, mock_session):
+        mock_session.execute.side_effect = Exception("Connection error")
+        response = self.client.get('/api/readyz')
+        self.assertEqual(response.status_code, 503)
+        data = json.loads(response.data)
+        self.assertEqual(data['status'], "UNAVAILABLE")
+        self.assertEqual(data['database'], "disconnected")
 
 if __name__ == '__main__':
     unittest.main()
