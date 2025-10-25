@@ -1,10 +1,10 @@
+import json
 import os
 import sys
 import unittest
-import json
+from unittest.mock import patch
 
 from app import create_app
-from unittest.mock import patch
 from extensions import db
 from models import User, Job, Application, UserProfile, CompanyProfile
 
