@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/companies/${params.id}`, {
+    const response = await fetch(`${BACKEND_URL}/api/companies/${params.id}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

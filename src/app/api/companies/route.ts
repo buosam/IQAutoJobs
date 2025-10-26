@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     
-    const response = await fetch(`${BACKEND_URL}/companies?${searchParams.toString()}`, {
+    const response = await fetch(`${BACKEND_URL}/api/companies?${searchParams.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

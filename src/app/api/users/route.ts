@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     
-    const response = await fetch(`${BACKEND_URL}/api/jobs?${searchParams.toString()}`, {
+    const response = await fetch(`${BACKEND_URL}/api/public/users?${searchParams.toString()}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -14,11 +14,14 @@ export async function GET(request: NextRequest) {
     })
     
     const data = await response.json()
-    return NextResponse.json(data, { status: response.status })
+    
+    // Wrap in users object if the backend returns an array directly
+    const users = Array.isArray(data) ? data : data.users || data
+    return NextResponse.json({ users }, { status: response.status })
   } catch (error) {
-    console.error('Jobs fetch error:', error)
+    console.error('Users fetch error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch jobs' },
+      { error: 'Failed to fetch users' },
       { status: 500 }
     )
   }
