@@ -1,0 +1,110 @@
+AutoJobs
+/
+Failed
+Oct 26, 2025, 10:42 AM
+iqautojobs.com
+Get Help
+Search build logs
+You reached the start of the range
+Oct 26, 2025, 10:42 AM
+ 
+[Region: europe-west4]
+=========================
+Using Detected Dockerfile
+=========================
+context: 71q1-AcIC
+internal
+load build definition from Dockerfile
+0ms
+internal
+load metadata for docker.io/library/node:18-alpine
+795ms
+auth
+library/node:pull token for registry-1.docker.io
+0ms
+internal
+load .dockerignore
+0ms
+1
+FROM docker.io/library/node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
+6ms
+internal
+load build context
+0ms
+2
+WORKDIR /app cached
+1ms
+3
+COPY package*.json ./
+19ms
+4
+RUN npm ci --only=production
+27s
+npm notice
+5
+COPY . .
+568ms
+6
+RUN npm run build
+8s
+> nextjs_tailwind_shadcn_ts@0.1.0 build
+> next build
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+   ▲ Next.js 15.3.5
+   Creating an optimized production build ...
+Failed to compile.
+src/app/layout.tsx
+An error occurred in `next/font`.
+
+Error: Cannot find module '@tailwindcss/postcss'
+Require stack:
+- /app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+- /app/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+- /app/node_modules/next/dist/build/webpack/config/index.js
+- /app/node_modules/next/dist/build/webpack-config.js
+- /app/node_modules/next/dist/build/webpack/plugins/next-trace-entrypoints-plugin.js
+- /app/node_modules/next/dist/build/collect-build-traces.js
+- /app/node_modules/next/dist/build/index.js
+- /app/node_modules/next/dist/cli/next-build.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+    at /app/node_modules/next/dist/server/require-hook.js:55:36
+    at Function.resolve (node:internal/modules/helpers:188:19)
+    at loadPlugin (/app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:53:32)
+    at /app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:56
+    at Array.map (<anonymous>)
+    at getPostCssPlugins (/app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:47)
+    at async /app/node_modules/next/dist/build/webpack/config/blocks/css/index.js:125:36
+src/app/layout.tsx
+An error occurred in `next/font`.
+
+Error: Cannot find module '@tailwindcss/postcss'
+Require stack:
+- /app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js
+- /app/node_modules/next/dist/build/webpack/config/blocks/css/index.js
+- /app/node_modules/next/dist/build/webpack/config/index.js
+- /app/node_modules/next/dist/build/webpack-config.js
+- /app/node_modules/next/dist/build/webpack/plugins/next-trace-entrypoints-plugin.js
+- /app/node_modules/next/dist/build/collect-build-traces.js
+- /app/node_modules/next/dist/build/index.js
+- /app/node_modules/next/dist/cli/next-build.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+    at /app/node_modules/next/dist/server/require-hook.js:55:36
+    at Function.resolve (node:internal/modules/helpers:188:19)
+    at loadPlugin (/app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:53:32)
+    at /app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:56
+    at Array.map (<anonymous>)
+    at getPostCssPlugins (/app/node_modules/next/dist/build/webpack/config/blocks/css/plugins.js:185:47)
+    at async /app/node_modules/next/dist/build/webpack/config/blocks/css/index.js:125:36
+> Build failed because of webpack errors
+Dockerfile:17
+-------------------
+15 |
+16 |     # Build the Next.js application
+17 | >>> RUN npm run build
+18 |
+19 |     # Expose the port the app runs on
+-------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
