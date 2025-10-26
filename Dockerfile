@@ -12,7 +12,7 @@ COPY backend/requirements.txt ./backend/requirements.txt
 
 # Install Python dependencies
 RUN apk add --no-cache --virtual .build-deps build-base python3-dev && \
-    pip install --no-cache-dir -r backend/requirements.txt && \
+    pip install --no-cache-dir --break-system-packages -r backend/requirements.txt && \
     apk del .build-deps
 
 # Copy package.json and package-lock.json (if available)
