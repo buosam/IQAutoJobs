@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Filter, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -56,6 +56,7 @@ interface JobFiltersProps {
 
 export function JobFilters({}: JobFiltersProps) {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [isExpanded, setIsExpanded] = useState(false)
 
   // Get current filter values
@@ -73,7 +74,7 @@ export function JobFilters({}: JobFiltersProps) {
       params.delete(key)
     }
     params.set("page", "1")
-    window.location.href = `/jobs?${params.toString()}`
+    router.push(`/jobs?${params.toString()}`)
   }
 
   const clearAllFilters = () => {
@@ -81,7 +82,7 @@ export function JobFilters({}: JobFiltersProps) {
     const keysToClear = ["type", "category", "experience_level", "salary_min", "salary_max"]
     keysToClear.forEach(key => params.delete(key))
     params.set("page", "1")
-    window.location.href = `/jobs?${params.toString()}`
+    router.push(`/jobs?${params.toString()}`)
   }
 
   const hasActiveFilters = currentType || currentCategory || currentExperience || currentSalaryMin || currentSalaryMax
