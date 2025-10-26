@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { JobCard } from "@/components/job-card"
-import { Link } from "next/link"
+import Link from "next/link"
 
 interface Company {
   id: string

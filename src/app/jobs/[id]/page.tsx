@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ApplyDialog } from "@/components/apply-dialog"
-import { Link } from "next/link"
+import Link from "next/link"
 
 interface Job {
   id: string

@@ -4,7 +4,7 @@ import { MapPin, Briefcase, Clock, DollarSign, Building2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Link } from "next/link"
+import Link from "next/link"
 
 interface Job {
   id: string
