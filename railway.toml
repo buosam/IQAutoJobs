@@ -1,0 +1,25 @@
+# Railway Configuration
+[build]
+command = "npm run build"
+
+[deploy]
+startCommand = "npm start"
+
+[env]
+NODE_ENV = "production"
+NEXT_PUBLIC_API_URL = "https://your-backend-url.railway.app"
+
+# Database Configuration (if using Railway's PostgreSQL)
+# DATABASE_URL = "${{Postgres.DATABASE_URL}}"
+
+# Redis Configuration (if using Railway's Redis)
+# REDIS_URL = "${{Redis.REDIS_URL}}"
+
+# Secret Key
+# SECRET_KEY = "your-production-secret-key"
+
+# File Storage Configuration
+# CLOUDFLARE_R2_ACCESS_KEY_ID = "${{CLOUDFLARE.R2.ACCESS_KEY_ID}}"
+# CLOUDFLARE_R2_SECRET_ACCESS_KEY = "${{CLOUDFLARE.R2.SECRET_ACCESS_KEY}}"
+# CLOUDFLARE_R2_BUCKET_NAME = "your-bucket-name"
+# CLOUDFLARE_R2_ACCOUNT_ID = "your-account-id"

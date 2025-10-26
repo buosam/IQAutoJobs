@@ -1,0 +1,27 @@
+# Railway Backend Configuration
+[build]
+command = "pip install -r requirements.txt"
+
+[deploy]
+startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+
+[env]
+ENVIRONMENT = "production"
+
+# Database Configuration
+# DATABASE_URL = "${{Postgres.DATABASE_URL}}"
+
+# Redis Configuration
+# REDIS_URL = "${{Redis.REDIS_URL}}"
+
+# Secret Key
+# SECRET_KEY = "${{SECRET_KEY}}"
+
+# File Storage Configuration
+# CLOUDFLARE_R2_ACCESS_KEY_ID = "${{CLOUDFLARE.R2.ACCESS_KEY_ID}}"
+# CLOUDFLARE_R2_SECRET_ACCESS_KEY = "${{CLOUDFLARE.R2.SECRET_ACCESS_KEY}}"
+# CLOUDFLARE_R2_BUCKET_NAME = "${{CLOUDFLARE.R2.BUCKET_NAME}}"
+# CLOUDFLARE_R2_ACCOUNT_ID = "${{CLOUDFLARE.R2.ACCOUNT_ID}}"
+
+# CORS Configuration
+CORS_ORIGINS = "https://your-frontend-url.railway.app"
