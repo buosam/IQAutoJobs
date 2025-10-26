@@ -17,26 +17,43 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### October 26, 2025 - Complete Job Application Flow Implementation
-- ✅ Implemented complete authentication flow with login/registration pages
-- ✅ Upgraded to secure httpOnly cookie authentication (XSS protection)
-- ✅ Created job details page with full job information display
-- ✅ Built complete job application flow with CV/resume upload
-- ✅ Added unauthenticated user handling - redirects to register/login when applying
-- ✅ Implemented return URL flow - users return to job page after registration
-- ✅ Created Apply Dialog with two-step process (CV upload → application submission)
-- ✅ Resume upload to Cloudflare R2 with file validation (PDF/DOC/DOCX, max 10MB)
-- ✅ Fixed Next.js 15 compatibility (async cookies, async params)
-- ✅ Authentication checks via API endpoint (not localStorage) for security
-- ✅ Created dashboard page with role-based UI (ADMIN/EMPLOYER/CANDIDATE)
-- ✅ Added public users endpoint (`/api/public/users`) for browsing registered users
-- ✅ Fixed all API proxy routes to include `/api/` prefix matching backend
-- ✅ Created sample data: 5 users, 2 companies, 3 jobs in PostgreSQL database
-- ✅ Verified end-to-end connectivity: Frontend ↔ API Routes ↔ Backend
-- ✅ All endpoints verified and routing correctly
-- ✅ Demo credentials available on login page for testing
-- ✅ Production-ready with security best practices
-- ✅ Comprehensive testing guide created (TESTING_GUIDE.md)
+### October 26, 2025 - Complete Platform with Profile Management & OAuth
+- ✅ **User Profile System:**
+  - Extended User model with profile fields: bio, skills, location, headline, resume_url
+  - Created profile CRUD API endpoints: GET/PATCH /api/users/me
+  - Built comprehensive profile page with edit form and resume upload
+  - Added profile links to all navigation menus (candidate/employer/admin)
+  - React-hook-form + Zod validation for profile editing
+  - Resume upload integration with Cloudflare R2
+
+- ✅ **Google OAuth Integration:**
+  - OAuth 2.0 authentication flow for signup/login
+  - Backend OAuth router with Google login/callback endpoints
+  - Database schema supports OAuth: oauth_provider, oauth_id fields
+  - "Continue with Google" buttons on login and register pages
+  - Account linking for existing users
+  - Complete setup documentation (GOOGLE_OAUTH_SETUP.md)
+
+- ✅ **Job Application Flow:**
+  - Complete authentication flow with login/registration pages
+  - Secure httpOnly cookie authentication (XSS protection)
+  - Job details page with full job information display
+  - Complete job application flow with CV/resume upload
+  - Unauthenticated user handling - redirects to register/login when applying
+  - Return URL flow - users return to job page after registration
+  - Apply Dialog with two-step process (CV upload → application submission)
+  - Resume upload to Cloudflare R2 with file validation (PDF/DOC/DOCX, max 10MB)
+
+- ✅ **Technical Implementation:**
+  - Fixed Next.js 15 compatibility (async cookies, async params)
+  - Authentication checks via API endpoint (not localStorage) for security
+  - Dashboard page with role-based UI (ADMIN/EMPLOYER/CANDIDATE)
+  - Public users endpoint (`/api/public/users`) for browsing registered users
+  - All API proxy routes with `/api/` prefix matching backend
+  - Sample data: 5 users, 2 companies, 3 jobs in PostgreSQL database
+  - End-to-end connectivity verified: Frontend ↔ API Routes ↔ Backend
+  - Production-ready with security best practices
+  - Comprehensive documentation: TESTING_GUIDE.md, GOOGLE_OAUTH_SETUP.md, IMPLEMENTATION_COMPLETE.md
 
 ## System Architecture
 
