@@ -44,9 +44,8 @@ export default function LoginPage() {
 
       if (response.ok) {
         const data = await response.json()
-        // Store tokens in localStorage (in a real app, use httpOnly cookies)
-        localStorage.setItem("access_token", data.access_token)
-        localStorage.setItem("refresh_token", data.refresh_token)
+        // Tokens are now stored in secure httpOnly cookies
+        // Store user data in localStorage for UI purposes only
         localStorage.setItem("user", JSON.stringify(data.user))
         
         // Redirect to dashboard

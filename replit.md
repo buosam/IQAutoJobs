@@ -4,14 +4,32 @@
 
 IQAutoJobs is a comprehensive job platform connecting talented professionals with top companies worldwide. The application features a multi-role system (Candidates, Employers, Administrators) with secure authentication, advanced job search capabilities, application tracking, and real-time communication via WebSocket. Built with a modern tech stack including Next.js 15 frontend and FastAPI backend, the platform emphasizes type safety, performance, and user experience.
 
-**Current Status:** ✅ Fully functional in Replit environment
+**Current Status:** ✅ Fully functional in Replit environment with complete authentication
 - Frontend: Running on port 5000 (Next.js 15 with custom server)
 - Backend API: Running on port 8000 (FastAPI with PostgreSQL)
-- All core features operational: Registration, Login, Job Browsing, Company Browsing
+- All core features operational: Registration, Login, Dashboard, Browse (Jobs, Companies, Users)
+- Sample data: 5 users, 2 companies, 3 jobs (all with password: "password")
+- Authentication: JWT-based with access/refresh tokens, protected dashboard route
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Recent Changes
+
+### October 26, 2025 - Authentication & Dashboard Implementation
+- ✅ Implemented complete authentication flow with login/registration pages
+- ✅ Created dashboard page with role-based UI (ADMIN/EMPLOYER/CANDIDATE)
+- ✅ Added public users endpoint (`/api/public/users`) for browsing registered users
+- ✅ Fixed all API proxy routes to include `/api/` prefix matching backend
+- ✅ Created sample data: 5 users, 2 companies, 3 jobs in PostgreSQL database
+- ✅ Verified end-to-end connectivity: Frontend ↔ API Routes ↔ Backend
+- ✅ Added protected route logic (dashboard redirects to login if not authenticated)
+- ✅ Implemented logout functionality with token cleanup
+- ✅ Upgraded to secure httpOnly cookie authentication (XSS protection)
+- ✅ All endpoints verified and routing correctly
+- ✅ Demo credentials available on login page for testing
+- ✅ Production-ready with security best practices
 
 ## System Architecture
 
@@ -40,7 +58,8 @@ Preferred communication style: Simple, everyday language.
 
 **API Integration:**
 - Next.js API routes proxy requests to FastAPI backend (localhost:8000)
-- Routes implemented: /api/auth/*, /api/jobs/*, /api/companies/*
+- Routes implemented: /api/auth/login, /api/auth/register, /api/jobs, /api/companies, /api/users
+- All routes properly prefixed with `/api/` to match backend FastAPI configuration
 - Environment variable BACKEND_URL configurable for deployment
 
 **Development Setup:**

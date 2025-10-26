@@ -20,7 +20,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(data, { status: response.status })
     }
     
-    return NextResponse.json(data)
+    // Create response with secure httpOnly cookies
+    const res = NextResponse.json(
+      { user: data.user, success: true },
+      { status: 200 }
+    )
+    
+    // Set httpOnly cookies for tokens (not accessible via JavaScript for XSS protection)
+    res.cookies.set('access_token', data.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 15, // 15 minutes
+      path: '/',
+    })
+    
+    res.cookies.set('refresh_token', data.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: '/',
+    })
+    
+    // Also return tokens for localStorage fallback (can be removed in production)
+    return res
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json(
