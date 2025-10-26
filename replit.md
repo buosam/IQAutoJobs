@@ -4,6 +4,11 @@
 
 IQAutoJobs is a comprehensive job platform connecting talented professionals with top companies worldwide. The application features a multi-role system (Candidates, Employers, Administrators) with secure authentication, advanced job search capabilities, application tracking, and real-time communication via WebSocket. Built with a modern tech stack including Next.js 15 frontend and FastAPI backend, the platform emphasizes type safety, performance, and user experience.
 
+**Current Status:** ✅ Fully functional in Replit environment
+- Frontend: Running on port 5000 (Next.js 15 with custom server)
+- Backend API: Running on port 8000 (FastAPI with PostgreSQL)
+- All core features operational: Registration, Login, Job Browsing, Company Browsing
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -30,8 +35,13 @@ Preferred communication style: Simple, everyday language.
 
 **Real-time Communication:**
 - Socket.IO client for WebSocket connections
-- Custom server integration in `server.ts` combining Next.js with Socket.IO on same port (3000)
+- Custom server integration in `server.ts` combining Next.js with Socket.IO on port 5000
 - Echo-based message system for real-time updates
+
+**API Integration:**
+- Next.js API routes proxy requests to FastAPI backend (localhost:8000)
+- Routes implemented: /api/auth/*, /api/jobs/*, /api/companies/*
+- Environment variable BACKEND_URL configurable for deployment
 
 **Development Setup:**
 - Custom development server using nodemon and tsx for hot reloading

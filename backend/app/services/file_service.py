@@ -3,7 +3,7 @@ File service for IQAutoJobs - handles R2/S3 operations.
 """
 import os
 import uuid
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError

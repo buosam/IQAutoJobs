@@ -19,12 +19,13 @@ args = "Frontend"
 name = "Backend API"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd backend && python -m gunicorn wsgi:app --bind localhost:8000 --reload"
-
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+waitForPort = 8000
 
 [[workflows.workflow]]
 name = "Frontend"
@@ -35,12 +36,20 @@ outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd /home/runner/workspace && PORT=5000 ./node_modules/.bin/tsx server.ts"
+args = "PORT=5000 ./node_modules/.bin/tsx server.ts"
 waitForPort = 5000
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[[ports]]
+localPort = 34029
+externalPort = 3000
 
 [agent]
 expertMode = true
