@@ -42,11 +42,9 @@ next-env.d.ts
 local-*
 .claude
 .z-ai-config
-dev.log
 test
 prompt
 
-server.log
 __pycache__/
 *.pyc
 *.log
