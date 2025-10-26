@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
+import { storeUserSession } from "@/lib/auth"
 
 export default function LoginForm() {
   const router = useRouter()
@@ -48,9 +49,14 @@ export default function LoginForm() {
 
       if (response.ok) {
         const data = await response.json();
-        const { first_name, role } = data.user;
-        const userToStore = { first_name, role };
-        localStorage.setItem("user", JSON.stringify(userToStore));
+        const user = data?.user;
+
+        if (!user?.first_name || !user?.role) {
+          console.error("Login response is missing user data", data);
+          throw new Error("Login failed due to invalid server response.");
+        }
+
+        storeUserSession(user);
 
         if (returnTo) {
           router.push(returnTo);
