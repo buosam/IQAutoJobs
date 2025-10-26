@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
+import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
 
 export default function LoginForm() {
   const router = useRouter()
@@ -37,7 +38,7 @@ export default function LoginForm() {
     setError("")
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(API_ROUTES.LOGIN, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -46,13 +47,10 @@ export default function LoginForm() {
       })
 
       if (response.ok) {
-        const data = await response.json()
-        localStorage.setItem("user", JSON.stringify(data.user))
-
         if (returnTo) {
           router.push(returnTo)
         } else {
-          router.push("/dashboard")
+          router.push(PAGE_ROUTES.DASHBOARD)
         }
       } else {
         const errorData = await response.json()
@@ -140,7 +138,7 @@ export default function LoginForm() {
 
             <div className="flex items-center justify-between">
               <Link
-                href="/auth/forgot-password"
+                href={PAGE_ROUTES.FORGOT_PASSWORD}
                 className="text-sm text-primary hover:underline"
               >
                 Forgot password?
@@ -187,7 +185,7 @@ export default function LoginForm() {
                 Don't have an account?{" "}
               </span>
               <Link
-                href="/auth/register"
+                href={PAGE_ROUTES.REGISTER}
                 className="text-sm text-primary hover:underline font-medium"
               >
                 Sign up
