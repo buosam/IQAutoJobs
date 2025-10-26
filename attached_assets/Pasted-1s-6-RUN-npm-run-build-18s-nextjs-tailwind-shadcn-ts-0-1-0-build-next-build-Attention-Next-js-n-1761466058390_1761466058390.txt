@@ -1,0 +1,41 @@
+1s
+6
+RUN npm run build
+18s
+> nextjs_tailwind_shadcn_ts@0.1.0 build
+> next build
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+   ▲ Next.js 15.3.5
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 12.0s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/23) ...
+Error occurred prerendering page "/auth/login". Read more: https://nextjs.org/docs/messages/prerender-error
+
+Error: Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined.
+    at nH (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:64717)
+    at nW (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:67762)
+    at nz (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:65337)
+    at nY (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:71193)
+    at nH (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:60968)
+    at nW (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:67762)
+    at nz (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:65337)
+    at nY (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:71193)
+    at nX (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:69876)
+    at nW (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:68029)
+Export encountered an error on /auth/login/page: /auth/login, exiting the build.
+ ⨯ Next.js build worker exited with code: 1 and signal: null
+Dockerfile:17
+-------------------
+15 |
+16 |     # Build the Next.js application
+17 | >>> RUN npm run build
+18 |
+19 |     # Prune dev dependencies after build (optional, saves space)
+-------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
