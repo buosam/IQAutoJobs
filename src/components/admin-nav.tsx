@@ -16,7 +16,8 @@ import {
   X,
   LogOut,
   Bell,
-  Activity
+  Activity,
+  User
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -120,6 +121,12 @@ export function AdminNav({ user }: AdminNavProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>View Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/admin/settings">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
@@ -185,6 +192,13 @@ export function AdminNav({ user }: AdminNavProps) {
               </Badge>
             </div>
             <div className="mt-3 px-2 space-y-1">
+              <Link
+                href="/profile"
+                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                View Profile
+              </Link>
               <Link
                 href="/admin/settings"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"

@@ -261,4 +261,65 @@ class AuthService:
     
     def is_token_valid(self, token: str) -> bool:
         """Check if token is valid."""
-        return verify_token(token, "access") is not None
+        return verify_token(token, "access") is not None    
+    def oauth_login(self, provider: str, oauth_id: str, email: str, first_name: str = "", last_name: str = "") -> Dict[str, Any]:
+        """Login or register user via OAuth."""
+        # First, try to find user by OAuth provider and ID
+        user = self.user_repo.get_by_oauth(provider, oauth_id)
+        
+        # If not found, try to find by email (existing user linking OAuth)
+        if not user:
+            user = self.user_repo.get_by_email(email)
+            if user:
+                # Link OAuth to existing account
+                user.oauth_provider = provider
+                user.oauth_id = oauth_id
+                self.db.commit()
+                self.db.refresh(user)
+        
+        # If still not found, create new user
+        if not user:
+            user_data = {
+                "email": email,
+                "first_name": first_name,
+                "last_name": last_name,
+                "oauth_provider": provider,
+                "oauth_id": oauth_id,
+                "password_hash": None,  # OAuth users don't have password
+                "role": "CANDIDATE",  # Default role for OAuth users
+                "is_active": True
+            }
+            user = self.user_repo.create_user(user_data)
+            
+            # Log audit for new OAuth user
+            self.audit_repo.log_user_action(
+                action="OAUTH_REGISTER",
+                user_id=user.id,
+                subject_type="User",
+                subject_id=str(user.id),
+                payload={"email": email, "provider": provider}
+            )
+        else:
+            # Log audit for OAuth login
+            self.audit_repo.log_user_action(
+                action="OAUTH_LOGIN",
+                user_id=user.id,
+                subject_type="User",
+                subject_id=str(user.id),
+                payload={"email": email, "provider": provider}
+            )
+        
+        # Create access and refresh tokens
+        access_token = create_access_token(data={"sub": str(user.id)})
+        refresh_token, expires_at = create_refresh_token(user.id)
+        
+        # Store refresh token
+        refresh_token_hash = get_password_hash(refresh_token)
+        self.token_repo.create_token(user.id, refresh_token_hash, expires_at)
+        
+        return {
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "bearer",
+            "user": user
+        }

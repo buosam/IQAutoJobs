@@ -14,7 +14,7 @@ from app.core.errors import (
     validation_exception_handler,
     http_exception_handler,
 )
-from app.api.routers import auth, jobs, applications, companies, admin, files, public
+from app.api.routers import auth, jobs, applications, companies, admin, files, public, users, oauth
 
 # Configure structured logging
 logger = get_logger()
@@ -70,12 +70,14 @@ app.add_exception_handler(Exception, http_exception_handler)
 
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
+app.include_router(oauth.router, prefix="/api/oauth", tags=["oauth"])
 app.include_router(jobs.router, prefix="/api/jobs", tags=["jobs"])
 app.include_router(applications.router, prefix="/api/applications", tags=["applications"])
 app.include_router(companies.router, prefix="/api/companies", tags=["companies"])
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(files.router, prefix="/api/files", tags=["files"])
 app.include_router(public.router, prefix="/api/public", tags=["public"])
+app.include_router(users.router, prefix="/api/users", tags=["users"])
 
 # Health check endpoints
 @app.get("/healthz")

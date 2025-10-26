@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
     RATE_LIMIT_WINDOW: int = Field(default=60, env="RATE_LIMIT_WINDOW")  # seconds
     
+    # Google OAuth
+    GOOGLE_OAUTH_CLIENT_ID: str = Field(default="", env="GOOGLE_OAUTH_CLIENT_ID")
+    GOOGLE_OAUTH_CLIENT_SECRET: str = Field(default="", env="GOOGLE_OAUTH_CLIENT_SECRET")
+    GOOGLE_OAUTH_REDIRECT_URI: str = Field(default="", env="GOOGLE_OAUTH_REDIRECT_URI")
+    
     @validator("ALLOWED_HOSTS", pre=True)
     def parse_allowed_hosts(cls, v):
         if isinstance(v, str):

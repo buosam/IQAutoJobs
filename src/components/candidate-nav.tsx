@@ -37,7 +37,7 @@ interface CandidateNavProps {
 
 const navigation = [
   { name: "Dashboard", href: "/candidate", icon: Briefcase },
-  { name: "Profile", href: "/candidate/profile", icon: User },
+  { name: "Profile", href: "/profile", icon: User },
   { name: "Applications", href: "/candidate/applications", icon: FileText },
   { name: "Saved Jobs", href: "/candidate/saved-jobs", icon: Heart },
   { name: "Settings", href: "/candidate/settings", icon: Settings },
@@ -117,7 +117,7 @@ export function CandidateNav({ user }: CandidateNavProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/candidate/profile">
+                  <Link href="/profile">
                     <User className="mr-2 h-4 w-4" />
                     <span>View Profile</span>
                   </Link>
@@ -186,7 +186,7 @@ export function CandidateNav({ user }: CandidateNavProps) {
             </div>
             <div className="mt-3 px-2 space-y-1">
               <Link
-                href="/candidate/profile"
+                href="/profile"
                 className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
                 onClick={() => setMobileMenuOpen(false)}
               >

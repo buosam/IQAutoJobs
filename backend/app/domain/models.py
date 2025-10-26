@@ -48,6 +48,10 @@ class UserBase(BaseModel):
     phone: Optional[str] = None
     role: UserRole = UserRole.CANDIDATE
     is_active: bool = True
+    bio: Optional[str] = None
+    skills: Optional[List[str]] = None
+    location: Optional[str] = None
+    headline: Optional[str] = None
 
 
 class UserCreate(UserBase):
@@ -60,6 +64,11 @@ class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
+    bio: Optional[str] = None
+    skills: Optional[List[str]] = None
+    location: Optional[str] = None
+    headline: Optional[str] = None
+    resume_url: Optional[str] = None
 
 
 class UserResponse(UserBase):
@@ -67,6 +76,7 @@ class UserResponse(UserBase):
     id: UUID
     created_at: datetime
     updated_at: datetime
+    resume_url: Optional[str] = None
     
     class Config:
         from_attributes = True

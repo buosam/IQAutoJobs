@@ -20,6 +20,13 @@ class UserRepository(BaseRepository[User]):
         """Get user by email."""
         return self.db.query(User).filter(User.email == email).first()
     
+    def get_by_oauth(self, provider: str, oauth_id: str) -> Optional[User]:
+        """Get user by OAuth provider and ID."""
+        return self.db.query(User).filter(
+            User.oauth_provider == provider,
+            User.oauth_id == oauth_id
+        ).first()
+    
     def get_active_users(self, skip: int = 0, limit: int = 100) -> List[User]:
         """Get active users."""
         return self.db.query(User).filter(User.is_active == True).offset(skip).limit(limit).all()
