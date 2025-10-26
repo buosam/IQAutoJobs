@@ -4,6 +4,15 @@ FROM node:18-alpine
 # Set the working directory in the container
 WORKDIR /app
 
+# Install Python and pip
+RUN apk add --no-cache python3 py3-pip
+
+# Copy backend requirements first to leverage Docker cache
+COPY backend/requirements.txt ./backend/requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
