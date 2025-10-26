@@ -79,6 +79,11 @@ export default function RegisterForm() {
       })
 
       if (response.ok) {
+        const data = await response.json();
+        const { first_name, role } = data.user;
+        const userToStore = { first_name, role };
+        localStorage.setItem("user", JSON.stringify(userToStore));
+
         if (returnTo) {
           router.push(returnTo)
         } else {

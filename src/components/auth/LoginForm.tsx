@@ -47,10 +47,15 @@ export default function LoginForm() {
       })
 
       if (response.ok) {
+        const data = await response.json();
+        const { first_name, role } = data.user;
+        const userToStore = { first_name, role };
+        localStorage.setItem("user", JSON.stringify(userToStore));
+
         if (returnTo) {
-          router.push(returnTo)
+          router.push(returnTo);
         } else {
-          router.push(PAGE_ROUTES.DASHBOARD)
+          router.push(PAGE_ROUTES.DASHBOARD);
         }
       } else {
         const errorData = await response.json()
