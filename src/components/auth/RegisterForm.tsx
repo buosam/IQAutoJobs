@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
+import { storeUserSession } from "@/lib/auth"
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -79,6 +80,16 @@ export default function RegisterForm() {
       })
 
       if (response.ok) {
+        const data = await response.json();
+        const user = data?.user;
+
+        if (!user?.first_name || !user?.role) {
+          console.error("Registration response is missing user data", data);
+          throw new Error("Registration failed due to invalid server response.");
+        }
+
+        storeUserSession(user);
+
         if (returnTo) {
           router.push(returnTo)
         } else {
