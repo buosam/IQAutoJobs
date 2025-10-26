@@ -1,0 +1,39 @@
+6
+RUN npm run build
+19s
+> nextjs_tailwind_shadcn_ts@0.1.0 build
+> next build
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+   ▲ Next.js 15.3.5
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 13.0s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+   Generating static pages (0/23) ...
+ ⨯ useSearchParams() should be wrapped in a suspense boundary at page "/companies". Read more: https://nextjs.org/docs/messages/missing-suspense-with-csr-bailout
+    at a (/app/.next/server/chunks/704.js:3:14348)
+    at d (/app/.next/server/chunks/704.js:5:31082)
+    at v (/app/.next/server/app/companies/page.js:1:6803)
+    at nF (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:46843)
+    at nH (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:48618)
+    at nW (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:67762)
+    at nz (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:65337)
+    at nB (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:47195)
+    at nH (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:48664)
+    at nH (/app/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:76:64688)
+Error occurred prerendering page "/companies". Read more: https://nextjs.org/docs/messages/prerender-error
+Export encountered an error on /companies/page: /companies, exiting the build.
+ ⨯ Next.js build worker exited with code: 1 and signal: null
+Dockerfile:17
+-------------------
+15 |
+16 |     # Build the Next.js application
+17 | >>> RUN npm run build
+18 |
+19 |     # Prune dev dependencies after build (optional, saves space)
+-------------------
+ERROR: failed to build: failed to solve: process "/bin/sh -c npm run build" did not complete successfully: exit code: 1
