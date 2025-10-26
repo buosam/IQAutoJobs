@@ -10,10 +10,8 @@ export default function Header() {
           <h1 className="text-2xl font-bold text-blue-600">IQAutoJobs</h1>
         </Link>
         <nav>
-          <Link href="/auth/login">
-            <button className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700">
-              Login
-            </button>
+          <Link href="/auth/login" className="px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700">
+            Login
           </Link>
         </nav>
       </div>
