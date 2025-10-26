@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Search, MapPin, Briefcase, Grid, List } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,6 +40,7 @@ interface JobSearchResponse {
 
 export default function JobsContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -109,7 +110,7 @@ export default function JobsContent() {
     }
     params.set("page", "1")
 
-    window.location.href = `/jobs?${params.toString()}`
+    router.push(`/jobs?${params.toString()}`)
   }
 
   return (
@@ -223,7 +224,7 @@ export default function JobsContent() {
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your search criteria or check back later for new opportunities.
                   </p>
-                  <Button onClick={() => window.location.href = "/jobs"}>
+                  <Button onClick={() => router.push("/jobs")}>
                     Clear Filters
                   </Button>
                 </CardContent>
@@ -239,7 +240,7 @@ export default function JobsContent() {
                   onPageChange={(newPage) => {
                     const params = new URLSearchParams(searchParams)
                     params.set("page", newPage.toString())
-                    window.location.href = `/jobs?${params.toString()}`
+                    router.push(`/jobs?${params.toString()}`)
                   }}
                 />
               </div>
