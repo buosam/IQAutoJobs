@@ -3,10 +3,12 @@ import { setupSocket } from '@/lib/socket';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import next from 'next';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const dev = process.env.NODE_ENV !== 'production';
 const currentPort = parseInt(process.env.PORT || '5000', 10);
 const hostname = '0.0.0.0';
+const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
 
 // Custom server with Socket.IO integration
 async function createCustomServer() {
@@ -22,8 +24,21 @@ async function createCustomServer() {
     await nextApp.prepare();
     const handle = nextApp.getRequestHandler();
 
+    // Create a proxy middleware
+    const apiProxy = createProxyMiddleware({
+      target: backendUrl,
+      changeOrigin: true,
+      pathRewrite: { '^/api': '/api' },
+      ws: true, // proxy websockets
+      logLevel: 'debug',
+    });
+
     // Create HTTP server that will handle both Next.js and Socket.IO
     const server = createServer((req, res) => {
+      if (req.url?.startsWith('/api') || req.url?.startsWith('/healthz') || req.url?.startsWith('/readiness') || req.url?.startsWith('/metrics')) {
+        // Let the proxy handle API requests
+        return apiProxy(req, res, () => {});
+      }
       // Skip socket.io requests from Next.js handler
       if (req.url?.startsWith('/api/socketio')) {
         return;
