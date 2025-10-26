@@ -7,7 +7,8 @@ startCommand = "npm start"
 
 [env]
 NODE_ENV = "production"
-NEXT_PUBLIC_API_URL = "https://your-backend-url.railway.app"
+NEXT_PUBLIC_API_URL = "https://iqautojobs.com"
+BACKEND_URL = "http://localhost:8000"
 
 # Database Configuration (if using Railway's PostgreSQL)
 # DATABASE_URL = "${{Postgres.DATABASE_URL}}"
