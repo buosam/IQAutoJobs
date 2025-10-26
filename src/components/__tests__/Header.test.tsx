@@ -5,6 +5,7 @@ import Header from '../ui/header';
 jest.mock('next/navigation', () => ({
   useRouter() {
     return {
+      push: jest.fn(),
       prefetch: () => null
     };
   }
