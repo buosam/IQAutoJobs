@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
+import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -22,8 +23,8 @@ export default function RegisterForm() {
     email: "",
     password: "",
     confirmPassword: "",
-    firstName: "",
-    lastName: "",
+    first_name: "",
+    last_name: "",
     role: "CANDIDATE"
   })
   const [showPassword, setShowPassword] = useState(false)
@@ -63,7 +64,7 @@ export default function RegisterForm() {
     }
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch(API_ROUTES.REGISTER, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -71,20 +72,17 @@ export default function RegisterForm() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
           role: formData.role
         })
       })
 
       if (response.ok) {
-        const data = await response.json()
-        localStorage.setItem("user", JSON.stringify(data.user))
-
         if (returnTo) {
           router.push(returnTo)
         } else {
-          router.push("/dashboard")
+          router.push(PAGE_ROUTES.DASHBOARD)
         }
       } else {
         const errorData = await response.json()
@@ -139,15 +137,15 @@ export default function RegisterForm() {
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="first_name">First Name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    id="firstName"
-                    name="firstName"
+                    id="first_name"
+                    name="first_name"
                     type="text"
                     placeholder="First name"
-                    value={formData.firstName}
+                    value={formData.first_name}
                     onChange={handleChange}
                     className="pl-10"
                     required
@@ -156,15 +154,15 @@ export default function RegisterForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="last_name">Last Name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
-                    id="lastName"
-                    name="lastName"
+                    id="last_name"
+                    name="last_name"
                     type="text"
                     placeholder="Last name"
-                    value={formData.lastName}
+                    value={formData.last_name}
                     onChange={handleChange}
                     className="pl-10"
                     required
@@ -304,7 +302,7 @@ export default function RegisterForm() {
                 Already have an account?{" "}
               </span>
               <Link
-                href="/auth/login"
+                href={PAGE_ROUTES.LOGIN}
                 className="text-sm text-primary hover:underline font-medium"
               >
                 Sign in
