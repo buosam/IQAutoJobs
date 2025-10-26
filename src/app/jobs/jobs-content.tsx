@@ -224,7 +224,7 @@ export default function JobsContent() {
                   <p className="text-muted-foreground mb-4">
                     Try adjusting your search criteria or check back later for new opportunities.
                   </p>
-                  <Button onClick={() => window.location.href = "/jobs"}>
+                  <Button onClick={() => router.push('/jobs')}>
                     Clear Filters
                   </Button>
                 </CardContent>
