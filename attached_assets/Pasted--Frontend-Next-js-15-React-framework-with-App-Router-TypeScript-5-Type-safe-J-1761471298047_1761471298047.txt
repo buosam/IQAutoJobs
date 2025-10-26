@@ -1,0 +1,71 @@
+🎯 Frontend 
+
+     ⚡ Next.js 15 - React framework with App Router
+     📘 TypeScript 5 - Type-safe JavaScript
+     🎨 Tailwind CSS 4 - Utility-first CSS framework
+     🧩 shadcn/ui - High-quality, accessible components
+     🎯 Lucide React - Beautiful icon library
+     🔄 TanStack Query - Data synchronization
+     🐻 Zustand - State management
+     
+
+🚀 Backend 
+
+     ⚡ FastAPI - Modern, fast web framework
+     🐍 Python 3.11 - Robust programming language
+     🗄️ SQLAlchemy - SQL toolkit and ORM
+     🐘 PostgreSQL - Powerful open source database
+     🔐 JWT Authentication - Secure token-based auth
+     ⚡ Redis - In-memory data structure store
+     
+
+🛠️ DevOps & Deployment 
+
+     🐳 Docker - Containerization
+     🚀 Railway - Cloud deployment platform
+     ☁️ Cloudflare R2 - Object storage
+     🔍 SEO Optimized - Sitemap, robots.txt, structured data
+     
+
+🎯 Features 
+👥 User Management 
+
+     Multi-role System: Candidates, Employers, and Administrators
+     Secure Authentication: JWT-based with refresh tokens
+     Profile Management: Complete user profiles with skills and experience
+     Resume Upload: File storage with Cloudflare R2
+     
+
+🏢 Company Management 
+
+     Company Profiles: Detailed company information and branding
+     Job Posting: Create and manage job listings
+     Application Management: Review and manage candidate applications
+     Analytics Dashboard: Track job performance and applicant metrics
+     
+
+💼 Job Platform 
+
+     Advanced Search: Search by title, location, category, and skills
+     Job Filters: Comprehensive filtering options
+     Application Tracking: Real-time application status updates
+     Saved Jobs: Bookmark interesting opportunities
+     
+
+📊 Admin Panel 
+
+     System Dashboard: Overview of platform statistics
+     User Management: Manage all user accounts and roles
+     Content Moderation: Monitor and manage platform content
+     Audit Logs: Complete activity tracking and compliance
+     
+
+🚀 Quick Start 
+Prerequisites 
+
+     Node.js 18+
+     Python 3.11+
+     PostgreSQL 15+
+     Redis 7+
+     Docker (optional)
+     

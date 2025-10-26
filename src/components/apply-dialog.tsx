@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Upload, FileText, Send, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -16,6 +17,7 @@ interface Job {
   company: {
     name: string
     id: string
+    location?: string
   }
 }
 
@@ -26,10 +28,33 @@ interface ApplyDialogProps {
 }
 
 export function ApplyDialog({ open, onOpenChange, job }: ApplyDialogProps) {
+  const router = useRouter()
   const [coverLetter, setCoverLetter] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+
+  // Check authentication when dialog opens
+  useEffect(() => {
+    if (open) {
+      // Check authentication via API (checks httpOnly cookies)
+      fetch('/api/auth/me')
+        .then(response => {
+          if (!response.ok) {
+            // User is not authenticated, redirect to register with return URL
+            const returnUrl = `/jobs/${job.id}`
+            router.push(`/auth/register?returnTo=${encodeURIComponent(returnUrl)}&action=apply`)
+            onOpenChange(false)
+          }
+        })
+        .catch(() => {
+          // Auth check failed, redirect to register
+          const returnUrl = `/jobs/${job.id}`
+          router.push(`/auth/register?returnTo=${encodeURIComponent(returnUrl)}&action=apply`)
+          onOpenChange(false)
+        })
+    }
+  }, [open, job.id, router, onOpenChange])
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -68,30 +93,57 @@ export function ApplyDialog({ open, onOpenChange, job }: ApplyDialogProps) {
     setUploadProgress(0)
 
     try {
-      // Create form data
+      // Step 1: Upload CV
       const formData = new FormData()
       formData.append("file", selectedFile)
-      formData.append("cover_letter", coverLetter)
 
-      // Upload CV and apply
-      const response = await fetch(`/api/applications`, {
+      const uploadResponse = await fetch(`/api/files/cv`, {
         method: "POST",
         body: formData,
       })
 
-      if (response.ok) {
+      if (!uploadResponse.ok) {
+        const error = await uploadResponse.json()
+        throw new Error(error.error?.message || "Failed to upload CV")
+      }
+
+      const uploadData = await uploadResponse.json()
+      
+      // Step 2: Submit application
+      const applicationResponse = await fetch(`/api/applications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          job_id: job.id,
+          cv_key: uploadData.cv_key,
+          cover_letter: coverLetter || null,
+        }),
+      })
+
+      if (applicationResponse.ok) {
         alert("Application submitted successfully!")
         onOpenChange(false)
         // Reset form
         setCoverLetter("")
         setSelectedFile(null)
       } else {
-        const error = await response.json()
-        alert(error.detail || "Failed to submit application")
+        const error = await applicationResponse.json()
+        throw new Error(error.error?.message || "Failed to submit application")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Application submission error:", error)
-      alert("Failed to submit application. Please try again.")
+      
+      // If error is 401, redirect to login
+      if (error.message && error.message.includes("Authentication required")) {
+        const returnUrl = `/jobs/${job.id}`
+        alert("Your session has expired. Please log in again.")
+        router.push(`/auth/login?returnTo=${encodeURIComponent(returnUrl)}&action=apply`)
+        onOpenChange(false)
+      } else {
+        alert(error.message || "Failed to submit application. Please try again.")
+      }
     } finally {
       setUploading(false)
       setUploadProgress(0)

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Mail, Lock, Briefcase } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,9 @@ import Link from "next/link"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get("returnTo")
+  
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -48,8 +51,12 @@ export default function LoginPage() {
         // Store user data in localStorage for UI purposes only
         localStorage.setItem("user", JSON.stringify(data.user))
         
-        // Redirect to dashboard
-        router.push("/dashboard")
+        // Redirect to returnTo URL if provided, otherwise to dashboard
+        if (returnTo) {
+          router.push(returnTo)
+        } else {
+          router.push("/dashboard")
+        }
       } else {
         const errorData = await response.json()
         setError(errorData.error?.message || "Login failed")
