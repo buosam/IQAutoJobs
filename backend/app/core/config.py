@@ -15,8 +15,7 @@ class Settings(BaseSettings):
     DEBUG: bool = Field(default=False, env="DEBUG")
     
     # Security
-    SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY")
-    JWT_SECRET: str = Field(..., env="JWT_SECRET")
+    JWT_SECRET: str = Field(..., env="JWT_SECRET_KEY")
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
