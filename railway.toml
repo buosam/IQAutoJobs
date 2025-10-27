@@ -1,4 +1,5 @@
 # Railway Configuration
+# CACHE_BUSTER=1
 [build]
 command = "npm run build"
 
