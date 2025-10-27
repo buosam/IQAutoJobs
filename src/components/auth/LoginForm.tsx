@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
 import { storeUserSession } from "@/lib/auth"
+import { isValidRedirectUrl } from "@/lib/utils"
 
 export default function LoginForm() {
   const router = useRouter()
@@ -58,7 +59,7 @@ export default function LoginForm() {
 
         storeUserSession(user);
 
-        if (returnTo) {
+        if (isValidRedirectUrl(returnTo)) {
           router.push(returnTo);
         } else {
           router.push(PAGE_ROUTES.DASHBOARD);
