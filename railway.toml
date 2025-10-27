@@ -1,5 +1,5 @@
 # Railway Configuration
-# CACHE_BUSTER=1
+# Force Railway to re-read this config by changing the file hash
 [build]
 command = "npm run build"
 
