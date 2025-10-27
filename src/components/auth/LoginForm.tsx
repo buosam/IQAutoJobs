@@ -77,9 +77,11 @@ export default function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    const params = new URLSearchParams()
-    if (returnTo) params.set("returnTo", returnTo)
-    window.location.href = `/api/oauth/google/login?${params.toString()}`
+    const params = new URLSearchParams();
+    if (isValidRedirectUrl(returnTo)) {
+      params.set("returnTo", returnTo!);
+    }
+    window.location.href = `/api/oauth/google/login?${params.toString()}`;
   }
 
   return (

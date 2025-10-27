@@ -6,11 +6,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function isValidRedirectUrl(url: string | null): boolean {
-  if (!url) return false
-  // Disallow absolute URLs and protocol-relative URLs
-  if (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("//")) {
-    return false
+  if (!url) {
+    return false;
   }
-  // Ensure it's a relative path
-  return url.startsWith("/")
+  // A valid redirect URL must be a relative path, but not a protocol-relative URL.
+  return url.startsWith("/") && !url.startsWith("//");
 }
