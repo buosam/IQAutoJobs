@@ -9,7 +9,7 @@
     "dev": "nodemon --exec \"npx tsx server.ts\" --watch server.ts --watch src --ext ts,tsx,js,jsx 2>&1 | tee dev.log",
     "dev:server": "./node_modules/.bin/tsx server.ts",
     "build": "next build",
-    "start": "concurrently \"npm:start:backend\" \"wait-on -t 60000 http-get://localhost:$npm_package_config_backend_port/healthz && npm:start:frontend\"",
+    "start": "concurrently \"npm:start:backend\" \"while ! curl -s -o /dev/null -w '%{http_code}' http://localhost:$npm_package_config_backend_port/healthz | grep -q 200; do echo 'Waiting for backend...'; sleep 5; done && npm:start:frontend\"",
     "start:frontend": "NODE_ENV=production ./node_modules/.bin/tsx server.ts 2>&1 | tee server.log",
     "start:backend": "cd backend && uvicorn main:app --host 0.0.0.0 --port $npm_package_config_backend_port",
     "lint": "next lint",
