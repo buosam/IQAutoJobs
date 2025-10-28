@@ -6,7 +6,7 @@
     "dev": "nodemon --exec \"npx tsx server.ts\" --watch server.ts --watch src --ext ts,tsx,js,jsx 2>&1 | tee dev.log",
     "dev:server": "./node_modules/.bin/tsx server.ts",
     "build": "next build",
-    "start": "concurrently \"npm:start:backend\" \"wait-on -t 60000 http://localhost:8000 && npm:start:frontend\"",
+    "start": "concurrently \"npm:start:backend\" \"wait-on -t 60000 http://localhost:8000/healthz && npm:start:frontend\"",
     "start:frontend": "NODE_ENV=production ./node_modules/.bin/tsx server.ts 2>&1 | tee server.log",
     "start:backend": "cd backend && printenv | cut -d= -f1 && uvicorn main:app --host 0.0.0.0 --port 8000",
     "lint": "next lint",
