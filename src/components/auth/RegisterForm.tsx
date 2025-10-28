@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Link from "next/link"
 import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
 import { storeUserSession } from "@/lib/auth"
+import { isValidRedirectUrl } from "@/lib/utils"
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -90,10 +91,10 @@ export default function RegisterForm() {
 
         storeUserSession(user);
 
-        if (returnTo) {
-          router.push(returnTo)
+        if (isValidRedirectUrl(returnTo)) {
+          router.push(returnTo);
         } else {
-          router.push(PAGE_ROUTES.DASHBOARD)
+          router.push(PAGE_ROUTES.DASHBOARD);
         }
       } else {
         const errorData = await response.json()
