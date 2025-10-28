@@ -8,7 +8,7 @@ WORKDIR /app
 COPY backend/requirements.txt ./backend/requirements.txt
 
 # Install Python and dependencies
-RUN apk add --no-cache python3 py3-pip && \
+RUN apk add --no-cache python3 py3-pip curl && \
     apk add --no-cache --virtual .build-deps build-base python3-dev && \
     pip install --no-cache-dir --break-system-packages -r backend/requirements.txt && \
     apk del .build-deps
