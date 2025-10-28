@@ -65,8 +65,12 @@ export default function LoginForm() {
           router.push(PAGE_ROUTES.DASHBOARD);
         }
       } else {
-        const errorData = await response.json()
-        setError(errorData.error?.message || "Login failed")
+        try {
+          const errorData = await response.json()
+          setError(errorData.detail || "Login failed")
+        } catch (e) {
+          setError("An unexpected error occurred.")
+        }
       }
     } catch (error) {
       console.error("Login error:", error)
