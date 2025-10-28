@@ -16,6 +16,15 @@ jest.mock('next/navigation', () => ({
 
 global.fetch = jest.fn();
 
+async function fillAndSubmitForm() {
+  fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'Test' } });
+  fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'User' } });
+  fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'test@example.com' } });
+  fireEvent.change(screen.getByLabelText(/^Password/i), { target: { value: 'password123' } });
+  fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password123' } });
+  fireEvent.click(screen.getByText('Create Account'));
+}
+
 describe('RegisterForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -34,13 +43,7 @@ describe('RegisterForm', () => {
     });
 
     render(<RegisterForm />);
-
-    fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'Test' } });
-    fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'User' } });
-    fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/^Password/i), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByText('Create Account'));
+    await fillAndSubmitForm();
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/test-redirect');
@@ -56,13 +59,7 @@ describe('RegisterForm', () => {
     });
 
     render(<RegisterForm />);
-
-    fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'Test' } });
-    fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'User' } });
-    fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'test@example.com' } });
-    fireEvent.change(screen.getByLabelText(/^Password/i), { target: { value: 'password123' } });
-    fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'password123' } });
-    fireEvent.click(screen.getByText('Create Account'));
+    await fillAndSubmitForm();
 
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(PAGE_ROUTES.DASHBOARD);
