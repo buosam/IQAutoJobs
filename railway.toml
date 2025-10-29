@@ -9,7 +9,7 @@ startCommand = "npm start"
 [env]
 NODE_ENV = "production"
 NEXT_PUBLIC_API_URL = "https://iqautojobs.com"
-BACKEND_URL = "http://backend:8000"
+BACKEND_URL = "http://localhost:8000"
 SECRET_KEY = "change-me-in-railway-a-very-strong-secret-key"
 R2_ACCOUNT_ID = "change-me-in-railway"
 R2_ACCESS_KEY_ID = "change-me-in-railway"
