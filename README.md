@@ -89,10 +89,20 @@ npm install
 # Backend (.env)
 DATABASE_URL=postgresql://username:password@localhost/iqautojobs
 REDIS_URL=redis://localhost:6379
-SECRET_KEY=your-secret-key-here
+JWT_SECRET=your-super-secret-jwt-key
 ENVIRONMENT=development
 
+# Cloudflare R2 (Required)
+R2_ACCOUNT_ID=your-r2-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET=your-r2-bucket-name
+R2_PUBLIC_BASE=your-r2-public-base-url
+
 # Frontend (.env.local)
+# The custom server in `server.ts` uses the BACKEND_URL variable to proxy API requests.
+# Ensure this is set correctly for your local environment.
+BACKEND_URL=http://localhost:8000
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
@@ -258,19 +268,22 @@ server {
 ```env
 DATABASE_URL=postgresql://username:password@localhost/iqautojobs
 REDIS_URL=redis://localhost:6379
-SECRET_KEY=your-secret-key-here
+JWT_SECRET=your-super-secret-jwt-key
 ENVIRONMENT=development
 CORS_ORIGINS=http://localhost:3000
 
-# Cloudflare R2 (optional)
-CLOUDFLARE_R2_ACCESS_KEY_ID=your-access-key
-CLOUDFLARE_R2_SECRET_ACCESS_KEY=your-secret-key
-CLOUDFLARE_R2_BUCKET_NAME=your-bucket-name
-CLOUDFLARE_R2_ACCOUNT_ID=your-account-id
+# Cloudflare R2 (Required)
+R2_ACCOUNT_ID=your-r2-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET=your-r2-bucket-name
+R2_PUBLIC_BASE=your-r2-public-base-url
 ```
 
 #### Frontend (.env.local)
 ```env
+# Note: For the custom server, you may need to set BACKEND_URL
+# See server.ts for more details.
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
