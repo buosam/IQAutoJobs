@@ -26,6 +26,19 @@ async function fillAndSubmitForm() {
 }
 
 describe('RegisterForm', () => {
+  const { location } = window;
+
+  beforeAll(() => {
+    // @ts-ignore
+    delete window.location;
+    // @ts-ignore
+    window.location = { href: '' };
+  });
+
+  afterAll(() => {
+    window.location = location;
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     (fetch as jest.Mock).mockResolvedValue({
@@ -64,5 +77,19 @@ describe('RegisterForm', () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(PAGE_ROUTES.DASHBOARD);
     });
+  });
+
+  it('correctly handles the returnTo parameter for Google signups', () => {
+    mockGet.mockImplementation((param: string) => {
+      if (param === 'returnTo') {
+        return 'http://malicious.com';
+      }
+      return null;
+    });
+
+    render(<RegisterForm />);
+    fireEvent.click(screen.getByText('Sign up with Google'));
+
+    expect(window.location.href).toBe('/api/oauth/google/login?');
   });
 });

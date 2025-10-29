@@ -67,7 +67,7 @@ export default function LoginForm() {
       } else {
         try {
           const errorData = await response.json()
-          setError(errorData.detail || "Login failed")
+          setError(errorData?.detail || "Login failed")
         } catch (e) {
           setError("An unexpected error occurred.")
         }

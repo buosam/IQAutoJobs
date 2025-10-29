@@ -8,7 +8,7 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 const dev = process.env.NODE_ENV !== 'production';
 const currentPort = parseInt(process.env.PORT || '5000', 10);
 const hostname = '0.0.0.0';
-const backendUrl = process.env.BACKEND_URL || 'http://localhost:8000';
+const backendUrl = process.env.BACKEND_URL || 'http://backend:8000';
 
 // Custom server with Socket.IO integration
 async function createCustomServer() {
