@@ -97,8 +97,12 @@ export default function RegisterForm() {
           router.push(PAGE_ROUTES.DASHBOARD);
         }
       } else {
-        const errorData = await response.json()
-        setError(errorData.error?.message || "Registration failed")
+        try {
+          const errorData = await response.json()
+          setError(errorData?.detail || "Registration failed")
+        } catch (e) {
+          setError("An unexpected error occurred.")
+        }
       }
     } catch (error) {
       console.error("Registration error:", error)
