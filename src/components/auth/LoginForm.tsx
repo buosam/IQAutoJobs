@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Link from "next/link"
 import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
 import { storeUserSession } from "@/lib/auth"
-import { isValidRedirectUrl } from "@/lib/utils"
+import { isValidRedirectUrl, getApiError } from "@/lib/utils"
 
 export default function LoginForm() {
   const router = useRouter()
@@ -65,14 +65,8 @@ export default function LoginForm() {
           router.push(PAGE_ROUTES.DASHBOARD);
         }
       } else {
-        const responseText = await response.text();
-        try {
-          const errorData = JSON.parse(responseText);
-          setError(errorData?.detail || errorData?.error?.message || "Login failed");
-        } catch (e) {
-          console.error("Failed to parse JSON error response. Raw response:", responseText);
-          setError("An unexpected error occurred.");
-        }
+        const errorMessage = await getApiError(response, "Login failed");
+        setError(errorMessage);
       }
     } catch (error) {
       console.error("Login error:", error)
