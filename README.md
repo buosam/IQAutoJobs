@@ -89,7 +89,7 @@ npm install
 # Backend (.env)
 DATABASE_URL=postgresql://username:password@localhost/iqautojobs
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=your-super-secret-jwt-key
+JWT_SECRET_KEY=your-super-secret-jwt-key
 ENVIRONMENT=development
 
 # Cloudflare R2 (Required)
@@ -268,7 +268,7 @@ server {
 ```env
 DATABASE_URL=postgresql://username:password@localhost/iqautojobs
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=your-super-secret-jwt-key
+JWT_SECRET_KEY=your-super-secret-jwt-key
 ENVIRONMENT=development
 CORS_ORIGINS=http://localhost:3000
 
@@ -284,6 +284,7 @@ R2_PUBLIC_BASE=your-r2-public-base-url
 ```env
 # Note: For the custom server, you may need to set BACKEND_URL
 # See server.ts for more details.
+BACKEND_URL=http://localhost:8000
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
