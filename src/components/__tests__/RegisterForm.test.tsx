@@ -27,11 +27,12 @@ async function fillAndSubmitForm() {
 
 describe('RegisterForm', () => {
   const originalLocation = window.location;
+  const locationMock = { href: '' };
 
   beforeAll(() => {
     Object.defineProperty(window, 'location', {
       configurable: true,
-      value: { href: '' },
+      value: locationMock,
     });
   });
 
@@ -44,6 +45,7 @@ describe('RegisterForm', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    locationMock.href = '';
     (fetch as jest.Mock).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ user: { first_name: 'Test', role: 'CANDIDATE' } }),
