@@ -26,17 +26,20 @@ async function fillAndSubmitForm() {
 }
 
 describe('RegisterForm', () => {
-  const { location } = window;
+  const originalLocation = window.location;
 
   beforeAll(() => {
-    // @ts-ignore
-    delete window.location;
-    // @ts-ignore
-    window.location = { href: '' };
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { href: '' },
+    });
   });
 
   afterAll(() => {
-    window.location = location;
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: originalLocation,
+    });
   });
 
   beforeEach(() => {
