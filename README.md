@@ -230,6 +230,7 @@ railway up
 - Set up database connection
 - Configure Redis connection
 - Add secret keys and API URLs
+- Ensure `BACKEND_URL` is set to the backend service's internal URL (e.g., `http://backend:8000`).
 
 ### Manual Deployment
 
