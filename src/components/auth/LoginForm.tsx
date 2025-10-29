@@ -65,11 +65,13 @@ export default function LoginForm() {
           router.push(PAGE_ROUTES.DASHBOARD);
         }
       } else {
+        const responseText = await response.text();
         try {
-          const errorData = await response.json()
-          setError(errorData?.detail || "Login failed")
+          const errorData = JSON.parse(responseText);
+          setError(errorData?.detail || errorData?.error?.message || "Login failed");
         } catch (e) {
-          setError("An unexpected error occurred.")
+          console.error("Failed to parse JSON error response. Raw response:", responseText);
+          setError("An unexpected error occurred.");
         }
       }
     } catch (error) {
