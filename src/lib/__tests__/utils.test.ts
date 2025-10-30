@@ -8,28 +8,18 @@ describe('isValidRedirectUrl', () => {
     expect(isValidRedirectUrl('/')).toBe(true);
   });
 
-  it('should return false for absolute URLs', () => {
-    expect(isValidRedirectUrl('http://example.com')).toBe(false);
-    expect(isValidRedirectUrl('https://example.com/path')).toBe(false);
-  });
-
-  it('should return false for protocol-relative URLs', () => {
-    expect(isValidRedirectUrl('//example.com')).toBe(false);
-  });
-
-  it('should return false for URLs with invalid schemes', () => {
-    expect(isValidRedirectUrl('javascript:alert(1)')).toBe(false);
-    expect(isValidRedirectUrl('mailto:test@example.com')).toBe(false);
-  });
-
-  it('should return false for null, undefined, or empty strings', () => {
-    expect(isValidRedirectUrl(null)).toBe(false);
-    expect(isValidRedirectUrl(undefined)).toBe(false);
-    expect(isValidRedirectUrl('')).toBe(false);
-  });
-
-  it('should return false for urls that do not start with a forward slash', () => {
-    expect(isValidRedirectUrl('dashboard')).toBe(false);
+  it.each([
+    ['absolute URL', 'http://example.com'],
+    ['absolute URL', 'https://example.com/path'],
+    ['protocol-relative URL', '//example.com'],
+    ['URL with javascript scheme', 'javascript:alert(1)'],
+    ['URL with mailto scheme', 'mailto:test@example.com'],
+    ['null input', null],
+    ['undefined input', undefined as any],
+    ['empty string', ''],
+    ['URL that does not start with a forward slash', 'dashboard'],
+  ])('should return false for invalid input (%s)', (_, value) => {
+    expect(isValidRedirectUrl(value)).toBe(false);
   });
 });
 
