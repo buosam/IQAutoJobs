@@ -209,28 +209,30 @@ iqautojobs/
 
 ### Railway Deployment
 
-1. **Deploy Backend**
-```bash
-# Connect to Railway
-railway login
-railway init
+This application is deployed as a single container on Railway. The following environment variables **must be set** in the Railway project settings for the application to start correctly.
 
-# Deploy backend
-cd backend
-railway up
-```
+#### **Required Environment Variables**
 
-2. **Deploy Frontend**
-```bash
-# Deploy frontend
-railway up
-```
+The backend will fail to start if these variables are not provided:
 
-3. **Configure Environment Variables**
-- Set up database connection
-- Configure Redis connection
-- Add secret keys and API URLs
-- Ensure `BACKEND_URL` is set to the backend service's internal URL (e.g., `http://backend:8000`).
+- `DATABASE_URL`: This is typically managed by Railway when you provision a PostgreSQL database.
+- `JWT_SECRET_KEY`: A long, random, and secret string used for signing authentication tokens.
+- `R2_ACCOUNT_ID`: Your Cloudflare R2 account ID.
+- `R2_ACCESS_KEY_ID`: Your Cloudflare R2 access key ID.
+- `R2_SECRET_ACCESS_KEY`: Your Cloudflare R2 secret access key.
+- `R2_BUCKET`: The name of your R2 bucket.
+- `R2_PUBLIC_BASE`: The public base URL for your R2 bucket.
+
+#### **Optional Environment Variables**
+
+These variables have default values but can be customized:
+
+- `ENVIRONMENT`: Set to `production` for deployed environments.
+- `DEBUG`: Set to `False` in production.
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: Defaults to `30`.
+- `REFRESH_TOKEN_EXPIRE_DAYS`: Defaults to `7`.
+- `GOOGLE_OAUTH_CLIENT_ID`: For enabling Google Sign-In.
+- `GOOGLE_OAUTH_CLIENT_SECRET`: For enabling Google Sign-In.
 
 ### Manual Deployment
 
