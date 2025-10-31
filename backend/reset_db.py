@@ -23,8 +23,8 @@ def reset_database():
     settings = Settings(_env_file=dotenv_path)
 
     sync_url = make_url(settings.DATABASE_URL)
-    if sync_url.drivername.endswith('+asyncpg'):
-        sync_url = sync_url.set(drivername=sync_url.drivername.removesuffix('+asyncpg'))
+    if '+' in sync_url.drivername:
+        sync_url = sync_url.set(drivername=sync_url.drivername.split('+')[0])
     engine = create_engine(sync_url)
 
     with engine.connect() as connection:
