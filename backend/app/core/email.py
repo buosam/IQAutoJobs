@@ -12,7 +12,7 @@ class EmailService:
         self.api_key = settings.EMAIL_API_KEY
         self.from_address = settings.EMAIL_FROM_ADDRESS
         self.from_name = settings.EMAIL_FROM_NAME
-        self.base_url = "https://api.resend.com/emails"
+        self.base_url = settings.RESEND_API_BASE_URL
 
     async def send_email(self, to: str, subject: str, html: str):
         """Send an email."""

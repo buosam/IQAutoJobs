@@ -15,12 +15,18 @@ load_dotenv(dotenv_path=dotenv_path)
 # Now that .env is loaded, we can import the database modules
 # which rely on the settings being correctly populated
 from app.core.config import Settings
+from sqlalchemy.engine.url import make_url
 
 def reset_database():
     """Drops and recreates all tables."""
     print("Connecting to the database...")
     settings = Settings(_env_file=dotenv_path)
-    engine = create_engine(settings.DATABASE_URL.replace("+asyncpg", ""))
+
+    sync_url = make_url(settings.DATABASE_URL)
+    if sync_url.drivername.endswith('+asyncpg'):
+        sync_url = sync_url.set(drivername=sync_url.drivername.removesuffix('+asyncpg'))
+    engine = create_engine(sync_url)
+
     with engine.connect() as connection:
         with connection.begin():
             print("Dropping public schema with cascade...")
