@@ -3,8 +3,8 @@ Base repository class for IQAutoJobs.
 """
 from typing import Generic, TypeVar, Type, Optional, List, Dict, Any
 from uuid import UUID
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import select, func, or_
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import Base
 
@@ -14,27 +14,36 @@ ModelType = TypeVar("ModelType", bound=Base)
 class BaseRepository(Generic[ModelType]):
     """Base repository with common CRUD operations."""
     
-    def __init__(self, model: Type[ModelType], db: Session):
+    def __init__(self, model: Type[ModelType], db: AsyncSession):
         self.model = model
         self.db = db
     
-    def get(self, id: UUID) -> Optional[ModelType]:
+    async def get(self, id: UUID) -> Optional[ModelType]:
         """Get record by ID."""
-        return self.db.query(self.model).filter(self.model.id == id).first()
-    
-    def get_by_field(self, field: str, value: Any) -> Optional[ModelType]:
+        result = await self.db.execute(select(self.model).filter(self.model.id == id))
+        return result.scalar_one_or_none()
+
+    async def get_all(self) -> List[ModelType]:
+        """Get all objects."""
+        result = await self.db.execute(select(self.model))
+        return result.scalars().all()
+
+    async def get_by_field(self, field: str, value: Any) -> Optional[ModelType]:
         """Get record by field value."""
-        return self.db.query(self.model).filter(getattr(self.model, field) == value).first()
-    
-    def get_multi(
+        result = await self.db.execute(
+            select(self.model).filter(getattr(self.model, field) == value)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_multi(
         self,
         skip: int = 0,
         limit: int = 100,
-        filters: Optional[Dict[str, Any]] = None
+        filters: Optional[Dict[str, Any]] = None,
     ) -> List[ModelType]:
         """Get multiple records with pagination and filtering."""
-        query = self.db.query(self.model)
-        
+        query = select(self.model)
+
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model, field):
@@ -42,43 +51,45 @@ class BaseRepository(Generic[ModelType]):
                         query = query.filter(getattr(self.model, field).in_(value))
                     else:
                         query = query.filter(getattr(self.model, field) == value)
-        
-        return query.offset(skip).limit(limit).all()
-    
-    def create(self, obj_in: Dict[str, Any]) -> ModelType:
+
+        result = await self.db.execute(query.offset(skip).limit(limit))
+        return result.scalars().all()
+
+    async def create(self, obj_in: Dict[str, Any]) -> ModelType:
         """Create a new record."""
         db_obj = self.model(**obj_in)
         self.db.add(db_obj)
-        self.db.commit()
-        self.db.refresh(db_obj)
+        await self.db.commit()
+        await self.db.refresh(db_obj)
         return db_obj
-    
-    def update(self, db_obj: ModelType, obj_in: Dict[str, Any]) -> ModelType:
+
+    async def update(self, db_obj: ModelType, obj_in: Dict[str, Any]) -> ModelType:
         """Update a record."""
         for field, value in obj_in.items():
             if hasattr(db_obj, field):
                 setattr(db_obj, field, value)
-        
-        self.db.commit()
-        self.db.refresh(db_obj)
+
+        await self.db.commit()
+        await self.db.refresh(db_obj)
         return db_obj
-    
-    def delete(self, id: UUID) -> Optional[ModelType]:
+
+    async def delete(self, id: UUID) -> Optional[ModelType]:
         """Delete a record."""
-        db_obj = self.get(id)
+        db_obj = await self.get(id)
         if db_obj:
-            self.db.delete(db_obj)
-            self.db.commit()
+            await self.db.delete(db_obj)
+            await self.db.commit()
         return db_obj
-    
-    def exists(self, id: UUID) -> bool:
+
+    async def exists(self, id: UUID) -> bool:
         """Check if record exists."""
-        return self.db.query(self.model).filter(self.model.id == id).first() is not None
-    
-    def count(self, filters: Optional[Dict[str, Any]] = None) -> int:
+        result = await self.db.execute(select(self.model.id).filter(self.model.id == id))
+        return result.scalar_one_or_none() is not None
+
+    async def count(self, filters: Optional[Dict[str, Any]] = None) -> int:
         """Count records with optional filtering."""
-        query = self.db.query(self.model)
-        
+        query = select(func.count()).select_from(self.model)
+
         if filters:
             for field, value in filters.items():
                 if hasattr(self.model, field):
@@ -86,10 +97,11 @@ class BaseRepository(Generic[ModelType]):
                         query = query.filter(getattr(self.model, field).in_(value))
                     else:
                         query = query.filter(getattr(self.model, field) == value)
-        
-        return query.count()
+
+        result = await self.db.execute(query)
+        return result.scalar_one()
     
-    def search(
+    async def search(
         self,
         search_fields: List[str],
         search_term: str,
@@ -98,7 +110,7 @@ class BaseRepository(Generic[ModelType]):
         filters: Optional[Dict[str, Any]] = None
     ) -> List[ModelType]:
         """Search records by text fields."""
-        query = self.db.query(self.model)
+        query = select(self.model)
         
         # Add search conditions
         if search_term:
@@ -121,8 +133,10 @@ class BaseRepository(Generic[ModelType]):
                     else:
                         query = query.filter(getattr(self.model, field) == value)
         
-        return query.offset(skip).limit(limit).all()
+        result = await self.db.execute(query.offset(skip).limit(limit))
+        return result.scalars().all()
     
-    def get_by_ids(self, ids: List[UUID]) -> List[ModelType]:
+    async def get_by_ids(self, ids: List[UUID]) -> List[ModelType]:
         """Get multiple records by IDs."""
-        return self.db.query(self.model).filter(self.model.id.in_(ids)).all()
+        result = await self.db.execute(select(self.model).filter(self.model.id.in_(ids)))
+        return result.scalars().all()

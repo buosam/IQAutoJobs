@@ -1,43 +1,41 @@
 """
 Database configuration and session management.
 """
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 from app.core.config import settings
 
 # Create SQLAlchemy engine
-engine = create_engine(
+engine = create_async_engine(
     settings.DATABASE_URL,
-    poolclass=StaticPool,
     pool_pre_ping=True,
     pool_recycle=300,
     echo=settings.DEBUG,
 )
 
 # Create session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine, class_=AsyncSession
+)
 
 # Create base class for models
 Base = declarative_base()
 
 
-def get_db() -> Session:
+async def get_db() -> AsyncSession:
     """Get database session."""
-    db = SessionLocal()
-    try:
+    async with SessionLocal() as db:
         yield db
-    finally:
-        db.close()
 
 
-def create_tables():
+async def create_tables():
     """Create all database tables."""
-    Base.metadata.create_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 
-def drop_tables():
+async def drop_tables():
     """Drop all database tables."""
-    Base.metadata.drop_all(bind=engine)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)

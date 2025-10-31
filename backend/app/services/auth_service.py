@@ -38,19 +38,19 @@ class AuthService:
         self.token_repo = token_repo
         self.audit_repo = audit_repo
     
-    def register_user(self, user_data: UserCreate) -> Dict[str, Any]:
+    async def register_user(self, user_data: UserCreate) -> Dict[str, Any]:
         """Register a new user."""
         # Check if user already exists
-        existing_user = self.user_repo.get_by_email(user_data.email)
+        existing_user = await self.user_repo.get_by_email(user_data.email)
         if existing_user:
             raise ConflictError("User with this email already exists")
         
         # Create user
         user_dict = user_data.dict()
-        user_dict["password_hash"] = get_password_hash(user_data.password)
+        user_dict["hashed_password"] = get_password_hash(user_data.password)
         del user_dict["password"]
         
-        user = self.user_repo.create_user(user_dict)
+        user = await self.user_repo.create_user(user_dict)
         
         # Create access and refresh tokens
         access_token = create_access_token(data={"sub": str(user.id)})

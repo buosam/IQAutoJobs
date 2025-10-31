@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     DEBUG: bool = Field(default=False, env="DEBUG")
     
     # Security
-    JWT_SECRET: str = Field(..., env="JWT_SECRET_KEY")
+    JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
@@ -43,6 +43,16 @@ class Settings(BaseSettings):
     # Rate limiting
     RATE_LIMIT_REQUESTS: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
     RATE_LIMIT_WINDOW: int = Field(default=60, env="RATE_LIMIT_WINDOW")  # seconds
+
+    # Email
+    EMAIL_PROVIDER: str
+    EMAIL_API_KEY: str
+    EMAIL_FROM_ADDRESS: str
+    EMAIL_FROM_NAME: str
+
+    # URLs
+    BACKEND_URL: str
+    NEXT_PUBLIC_API_URL: str
     
     # Google OAuth
     GOOGLE_OAUTH_CLIENT_ID: str = Field(default="", env="GOOGLE_OAUTH_CLIENT_ID")

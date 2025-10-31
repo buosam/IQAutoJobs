@@ -1,14 +1,14 @@
 """
 SQLAlchemy database models for IQAutoJobs.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum as PyEnum
 from typing import Optional
 from uuid import uuid4
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, Enum, ForeignKey, Integer, JSON, String, Text, 
-    UniqueConstraint
+    Boolean, Column, DateTime, Enum, ForeignKey, Integer, JSON, String, Text,
+    UniqueConstraint, func
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
@@ -53,7 +53,7 @@ class User(Base):
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     email = Column(String(255), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=True)
+    hashed_password = Column(String(255), nullable=True)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.CANDIDATE)
     first_name = Column(String(100), nullable=True)
     last_name = Column(String(100), nullable=True)
@@ -69,8 +69,8 @@ class User(Base):
     headline = Column(String(255), nullable=True)
     resume_url = Column(String(500), nullable=True)
     
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     # Relationships
     company = relationship("Company", back_populates="owner", uselist=False)
@@ -94,8 +94,8 @@ class Company(Base):
     industry = Column(String(100), nullable=True)
     size = Column(String(50), nullable=True)  # e.g., "1-10", "11-50", etc.
     location = Column(String(255), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     # Relationships
     owner = relationship("User", back_populates="company")
@@ -119,10 +119,10 @@ class Job(Base):
     salary_max = Column(Integer, nullable=True)
     currency = Column(String(3), default="USD", nullable=False)
     status = Column(Enum(JobStatus), default=JobStatus.DRAFT, nullable=False)
-    published_at = Column(DateTime, nullable=True)
+    published_at = Column(DateTime(timezone=True), nullable=True)
     apply_email = Column(String(255), nullable=True)  # Optional email for applications
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     # Relationships
     company = relationship("Company", back_populates="jobs")
@@ -144,8 +144,8 @@ class Application(Base):
     cv_key = Column(String(500), nullable=False)  # R2 key for CV
     cover_letter = Column(Text, nullable=True)
     status = Column(Enum(ApplicationStatus), default=ApplicationStatus.RECEIVED, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     # Relationships
     job = relationship("Job", back_populates="applications")
@@ -159,7 +159,7 @@ class SavedJob(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
     # Relationships
     user = relationship("User", back_populates="saved_jobs")
@@ -177,8 +177,8 @@ class RefreshToken(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     token_hash = Column(String(255), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
     revoked = Column(Boolean, default=False, nullable=False)
     
     # Relationships
@@ -195,7 +195,7 @@ class AuditLog(Base):
     subject_type = Column(String(100), nullable=False)
     subject_id = Column(String(100), nullable=False)
     payload = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
     # Relationships
     actor = relationship("User", back_populates="audit_logs")

@@ -234,21 +234,10 @@ async def create_sample_data():
         # Create users
         users = []
         for user_data in SAMPLE_USERS:
-            user = User(
-                id=str(uuid.uuid4()),
-                first_name=user_data["first_name"],
-                last_name=user_data["last_name"],
-                email=user_data["email"],
-                hashed_password=get_password_hash(user_data["password"]),
-                role=user_data["role"],
-                is_active=True,
-                is_verified=True,
-                headline=user_data["headline"],
-                location=user_data["location"],
-                skills=user_data["skills"],
-                created_at=datetime.now() - timedelta(days=random.randint(1, 365))
-            )
-            users.append(await user_repo.create(user))
+            user_create_data = user_data.copy()
+            user_create_data["hashed_password"] = get_password_hash(user_create_data.pop("password"))
+            user = await user_repo.create_user(user_create_data)
+            users.append(user)
             print(f"Created user: {user.first_name} {user.last_name}")
         
         # Create companies
