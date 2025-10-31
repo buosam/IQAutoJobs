@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     EMAIL_API_KEY: str
     EMAIL_FROM_ADDRESS: str
     EMAIL_FROM_NAME: str
+    RESEND_API_BASE_URL: str = Field(default="https://api.resend.com/emails", env="RESEND_API_BASE_URL")
 
     # URLs
     BACKEND_URL: str
