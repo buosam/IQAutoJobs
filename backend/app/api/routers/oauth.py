@@ -141,11 +141,11 @@ async def google_callback(
     user_repo = UserRepository(db)
     token_repo = RefreshTokenRepository(db)
     audit_repo = AuditLogRepository(db)
-    auth_service = AuthService(db, user_repo, token_repo, audit_repo)
+    auth_service = AuthService(user_repo, token_repo, audit_repo)
     
     try:
         # Use the oauth_login method from auth_service
-        result = auth_service.oauth_login(
+        result = await auth_service.oauth_login(
             provider="google",
             oauth_id=google_id,
             email=email,

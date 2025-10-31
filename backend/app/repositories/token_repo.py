@@ -89,17 +89,6 @@ class RefreshTokenRepository(BaseRepository[RefreshToken]):
         await self.db.commit()
         return result.rowcount
     
-    async def is_token_valid(self, token_hash: str) -> bool:
-        """Check if refresh token is valid."""
-        token = await self.get_by_token_hash(token_hash)
-        if not token:
-            return False
-        
-        return (
-            not token.revoked and
-            token.expires_at > datetime.utcnow()
-        )
-    
     async def cleanup_expired_tokens(self) -> int:
         """Remove expired tokens."""
         result = await self.db.execute(
