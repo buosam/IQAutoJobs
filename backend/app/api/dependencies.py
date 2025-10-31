@@ -12,4 +12,4 @@ def get_auth_service(db: AsyncSession = Depends(get_db)) -> AuthService:
     user_repo = UserRepository(db)
     token_repo = RefreshTokenRepository(db)
     audit_repo = AuditLogRepository(db)
-    return AuthService(db, user_repo, token_repo, audit_repo)
+    return AuthService(user_repo, token_repo, audit_repo)

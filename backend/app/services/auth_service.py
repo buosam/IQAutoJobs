@@ -28,12 +28,10 @@ class AuthService:
     
     def __init__(
         self,
-        db: Session,
         user_repo: UserRepository,
         token_repo: RefreshTokenRepository,
         audit_repo: AuditLogRepository
     ):
-        self.db = db
         self.user_repo = user_repo
         self.token_repo = token_repo
         self.audit_repo = audit_repo
@@ -124,7 +122,7 @@ class AuthService:
         # Check if refresh token exists and is valid
         refresh_token_hash = get_password_hash(refresh_token)
         token = await self.token_repo.get_by_token_hash(refresh_token_hash)
-        if not token or not await self.token_repo.is_token_valid(refresh_token_hash):
+        if not token or token.revoked or token.expires_at <= datetime.now(token.expires_at.tzinfo):
             raise AuthenticationError("Invalid or expired refresh token")
         
         # Get user
