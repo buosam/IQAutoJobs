@@ -1,14 +1,20 @@
 """
 Database configuration and session management.
 """
+from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 from app.core.config import settings
 
+# Programmatically ensure the correct async driver is used
+db_url = make_url(settings.DATABASE_URL)
+if db_url.drivername.startswith("postgresql"):
+    db_url = db_url._replace(drivername="postgresql+asyncpg")
+
 # Create SQLAlchemy engine
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    db_url,
     pool_pre_ping=True,
     pool_recycle=300,
     echo=settings.DEBUG,
