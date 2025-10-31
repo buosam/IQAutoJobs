@@ -6,7 +6,11 @@ jest.mock('next/navigation', () => ({
   useRouter() {
     return {
       push: jest.fn(),
-      prefetch: () => null
+      replace: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      prefetch: jest.fn(() => Promise.resolve()),
+      refresh: jest.fn(),
     };
   }
 }));

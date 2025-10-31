@@ -89,10 +89,20 @@ npm install
 # Backend (.env)
 DATABASE_URL=postgresql://username:password@localhost/iqautojobs
 REDIS_URL=redis://localhost:6379
-SECRET_KEY=your-secret-key-here
+JWT_SECRET_KEY=your-super-secret-jwt-key
 ENVIRONMENT=development
 
+# Cloudflare R2 (Required)
+R2_ACCOUNT_ID=your-r2-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET=your-r2-bucket-name
+R2_PUBLIC_BASE=your-r2-public-base-url
+
 # Frontend (.env.local)
+# The custom server in `server.ts` uses the BACKEND_URL variable to proxy API requests.
+# Ensure this is set correctly for your local environment.
+BACKEND_URL=http://localhost:8000
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
@@ -199,27 +209,30 @@ iqautojobs/
 
 ### Railway Deployment
 
-1. **Deploy Backend**
-```bash
-# Connect to Railway
-railway login
-railway init
+This application is deployed as a single container on Railway. The following environment variables **must be set** in the Railway project settings for the application to start correctly.
 
-# Deploy backend
-cd backend
-railway up
-```
+#### **Required Environment Variables**
 
-2. **Deploy Frontend**
-```bash
-# Deploy frontend
-railway up
-```
+The backend will fail to start if these variables are not provided:
 
-3. **Configure Environment Variables**
-- Set up database connection
-- Configure Redis connection
-- Add secret keys and API URLs
+- `DATABASE_URL`: This is typically managed by Railway when you provision a PostgreSQL database.
+- `JWT_SECRET_KEY`: A long, random, and secret string used for signing authentication tokens.
+- `R2_ACCOUNT_ID`: Your Cloudflare R2 account ID.
+- `R2_ACCESS_KEY_ID`: Your Cloudflare R2 access key ID.
+- `R2_SECRET_ACCESS_KEY`: Your Cloudflare R2 secret access key.
+- `R2_BUCKET`: The name of your R2 bucket.
+- `R2_PUBLIC_BASE`: The public base URL for your R2 bucket.
+
+#### **Optional Environment Variables**
+
+These variables have default values but can be customized:
+
+- `ENVIRONMENT`: Set to `production` for deployed environments.
+- `DEBUG`: Set to `False` in production.
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: Defaults to `30`.
+- `REFRESH_TOKEN_EXPIRE_DAYS`: Defaults to `7`.
+- `GOOGLE_OAUTH_CLIENT_ID`: For enabling Google Sign-In.
+- `GOOGLE_OAUTH_CLIENT_SECRET`: For enabling Google Sign-In.
 
 ### Manual Deployment
 
@@ -258,19 +271,23 @@ server {
 ```env
 DATABASE_URL=postgresql://username:password@localhost/iqautojobs
 REDIS_URL=redis://localhost:6379
-SECRET_KEY=your-secret-key-here
+JWT_SECRET_KEY=your-super-secret-jwt-key
 ENVIRONMENT=development
 CORS_ORIGINS=http://localhost:3000
 
-# Cloudflare R2 (optional)
-CLOUDFLARE_R2_ACCESS_KEY_ID=your-access-key
-CLOUDFLARE_R2_SECRET_ACCESS_KEY=your-secret-key
-CLOUDFLARE_R2_BUCKET_NAME=your-bucket-name
-CLOUDFLARE_R2_ACCOUNT_ID=your-account-id
+# Cloudflare R2 (Required)
+R2_ACCOUNT_ID=your-r2-account-id
+R2_ACCESS_KEY_ID=your-r2-access-key-id
+R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
+R2_BUCKET=your-r2-bucket-name
+R2_PUBLIC_BASE=your-r2-public-base-url
 ```
 
 #### Frontend (.env.local)
 ```env
+# Note: For the custom server, you may need to set BACKEND_URL
+# See server.ts for more details.
+BACKEND_URL=http://localhost:8000
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```

@@ -4,6 +4,15 @@ FROM node:18-alpine
 # Set the working directory in the container
 WORKDIR /app
 
+# Copy backend requirements first to leverage Docker cache
+COPY backend/requirements.txt ./backend/requirements.txt
+
+# Install Python and dependencies
+RUN apk add --no-cache python3 py3-pip curl && \
+    apk add --no-cache --virtual .build-deps build-base python3-dev postgresql-dev && \
+    pip install --no-cache-dir --break-system-packages -r backend/requirements.txt && \
+    apk del .build-deps
+
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 

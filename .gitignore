@@ -48,3 +48,4 @@ prompt
 __pycache__/
 *.pyc
 *.log
+backend/venv/

@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Link from "next/link"
 import { API_ROUTES, PAGE_ROUTES } from "@/lib/constants"
 import { storeUserSession } from "@/lib/auth"
+import { isValidRedirectUrl, getApiError } from "@/lib/utils"
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -90,14 +91,14 @@ export default function RegisterForm() {
 
         storeUserSession(user);
 
-        if (returnTo) {
-          router.push(returnTo)
+        if (isValidRedirectUrl(returnTo)) {
+          router.push(returnTo);
         } else {
-          router.push(PAGE_ROUTES.DASHBOARD)
+          router.push(PAGE_ROUTES.DASHBOARD);
         }
       } else {
-        const errorData = await response.json()
-        setError(errorData.error?.message || "Registration failed")
+        const errorMessage = await getApiError(response, "Registration failed");
+        setError(errorMessage);
       }
     } catch (error) {
       console.error("Registration error:", error)
@@ -108,9 +109,11 @@ export default function RegisterForm() {
   }
 
   const handleGoogleSignup = () => {
-    const params = new URLSearchParams()
-    if (returnTo) params.set("returnTo", returnTo)
-    window.location.href = `/api/oauth/google/login?${params.toString()}`
+    const params = new URLSearchParams();
+    if (isValidRedirectUrl(returnTo)) {
+      params.set("returnTo", returnTo!);
+    }
+    window.location.href = `/api/oauth/google/login?${params.toString()}`;
   }
 
   return (
