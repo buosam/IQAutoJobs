@@ -122,7 +122,7 @@ class AuthService:
         # Check if refresh token exists and is valid
         refresh_token_hash = get_password_hash(refresh_token)
         token = await self.token_repo.get_by_token_hash(refresh_token_hash)
-        if not token or token.revoked or token.expires_at <= datetime.now(token.expires_at.tzinfo):
+        if not token or token.revoked:
             raise AuthenticationError("Invalid or expired refresh token")
         
         # Get user
