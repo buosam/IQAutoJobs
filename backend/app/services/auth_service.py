@@ -45,7 +45,7 @@ class AuthService:
         
         # Create user
         user_dict = user_data.dict()
-        user_dict["hashed_password"] = get_password_hash(user_data.password)
+        user_dict["hashed_password"] = await get_password_hash(user_data.password)
         del user_dict["password"]
         
         user = await self.user_repo.create_user(user_dict)
@@ -55,7 +55,7 @@ class AuthService:
         refresh_token, expires_at = create_refresh_token(user.id)
         
         # Store refresh token
-        refresh_token_hash = get_password_hash(refresh_token)
+        refresh_token_hash = await get_password_hash(refresh_token)
         await self.token_repo.create_token(user.id, refresh_token_hash, expires_at)
         
         # Log audit
@@ -78,7 +78,7 @@ class AuthService:
         """Login a user."""
         # Find user by email
         user = await self.user_repo.get_by_email(login_data.email)
-        if not user or not verify_password(login_data.password, user.hashed_password):
+        if not user or not await verify_password(login_data.password, user.hashed_password):
             raise AuthenticationError("Invalid email or password")
 
         if not user.is_active:
@@ -89,7 +89,7 @@ class AuthService:
         refresh_token, expires_at = create_refresh_token(user.id)
 
         # Store refresh token
-        refresh_token_hash = get_password_hash(refresh_token)
+        refresh_token_hash = await get_password_hash(refresh_token)
         await self.token_repo.create_token(user.id, refresh_token_hash, expires_at)
 
         # Log audit
@@ -120,7 +120,7 @@ class AuthService:
             raise AuthenticationError("Invalid refresh token")
         
         # Check if refresh token exists and is valid
-        refresh_token_hash = get_password_hash(refresh_token)
+        refresh_token_hash = await get_password_hash(refresh_token)
         token = await self.token_repo.get_by_token_hash(refresh_token_hash)
         if not token or token.revoked:
             raise AuthenticationError("Invalid or expired refresh token")
@@ -141,7 +141,7 @@ class AuthService:
     async def logout_user(self, refresh_token: str, user_id: UUID) -> bool:
         """Logout a user."""
         # Verify refresh token
-        refresh_token_hash = get_password_hash(refresh_token)
+        refresh_token_hash = await get_password_hash(refresh_token)
         token = await self.token_repo.get_by_token_hash(refresh_token_hash)
         
         if token:
@@ -198,7 +198,8 @@ class AuthService:
             raise NotFoundError("User not found")
         
         # Update password
-        await self.user_repo.update_user(user, {"hashed_password": get_password_hash(reset_data.new_password)})
+        hashed_password = await get_password_hash(reset_data.new_password)
+        await self.user_repo.update_user(user, {"hashed_password": hashed_password})
         
         # Revoke all refresh tokens for security
         await self.token_repo.revoke_all_user_tokens(user.id)
@@ -220,11 +221,12 @@ class AuthService:
             raise NotFoundError("User not found")
         
         # Verify current password
-        if not verify_password(current_password, user.hashed_password):
+        if not await verify_password(current_password, user.hashed_password):
             raise AuthenticationError("Current password is incorrect")
         
         # Update password
-        await self.user_repo.update_user(user, {"hashed_password": get_password_hash(new_password)})
+        hashed_password = await get_password_hash(new_password)
+        await self.user_repo.update_user(user, {"hashed_password": hashed_password})
         
         # Revoke all refresh tokens for security
         await self.token_repo.revoke_all_user_tokens(user.id)
@@ -307,7 +309,7 @@ class AuthService:
         refresh_token, expires_at = create_refresh_token(user.id)
         
         # Store refresh token
-        refresh_token_hash = get_password_hash(refresh_token)
+        refresh_token_hash = await get_password_hash(refresh_token)
         await self.token_repo.create_token(user.id, refresh_token_hash, expires_at)
         
         return {
