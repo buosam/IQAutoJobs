@@ -2,7 +2,6 @@
 Security utilities for IQAutoJobs.
 """
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 from jose import JWTError, jwt
@@ -13,9 +12,6 @@ from app.core.config import settings
 
 # Password context
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-
-# Process pool for CPU-bound tasks
-executor = ProcessPoolExecutor()
 
 def _verify_password_sync(plain_password: str, hashed_password: str) -> bool:
     """Synchronous password verification for process pool."""
@@ -29,14 +25,14 @@ async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash in a separate process."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        executor, _verify_password_sync, plain_password, hashed_password
+        executors.executor, _verify_password_sync, plain_password, hashed_password
     )
 
 async def get_password_hash(password: str) -> str:
     """Generate password hash in a separate process."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        executor, _get_password_hash_sync, password
+        executors.executor, _get_password_hash_sync, password
     )
 
 
