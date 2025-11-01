@@ -1,6 +1,7 @@
 """
 Security utilities for IQAutoJobs.
 """
+import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 from jose import JWTError, jwt
@@ -13,14 +14,14 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
+    return await asyncio.to_thread(pwd_context.verify, plain_password, hashed_password)
 
 
-def get_password_hash(password: str) -> str:
+async def get_password_hash(password: str) -> str:
     """Generate password hash."""
-    return pwd_context.hash(password)
+    return await asyncio.to_thread(pwd_context.hash, password)
 
 
 def create_access_token(
