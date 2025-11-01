@@ -9,6 +9,7 @@ from passlib.context import CryptContext
 from uuid import uuid4
 
 from app.core.config import settings
+from app.core import executors
 
 # Password context
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
@@ -23,6 +24,8 @@ def _get_password_hash_sync(password: str) -> str:
 
 async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash in a separate process."""
+    if not executors.executor:
+        raise RuntimeError("ProcessPoolExecutor is not initialized.")
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         executors.executor, _verify_password_sync, plain_password, hashed_password
@@ -30,6 +33,8 @@ async def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 async def get_password_hash(password: str) -> str:
     """Generate password hash in a separate process."""
+    if not executors.executor:
+        raise RuntimeError("ProcessPoolExecutor is not initialized.")
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         executors.executor, _get_password_hash_sync, password
