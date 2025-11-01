@@ -1,6 +1,8 @@
 """
 Authentication service for IQAutoJobs.
 """
+import time
+import structlog
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 from uuid import UUID
@@ -22,6 +24,8 @@ from app.repositories.token_repo import RefreshTokenRepository
 from app.repositories.audit_log_repo import AuditLogRepository
 from app.core.errors import AuthenticationError, ConflictError, NotFoundError
 
+logger = structlog.get_logger(__name__)
+
 
 class AuthService:
     """Authentication service."""
@@ -38,25 +42,41 @@ class AuthService:
     
     async def register_user(self, user_data: UserCreate) -> Dict[str, Any]:
         """Register a new user."""
+        start_time = time.time()
+        log = logger.bind(email=user_data.email)
+        log.info("Registration process started")
+
         # Check if user already exists
+        log.info("Checking for existing user")
         existing_user = await self.user_repo.get_by_email(user_data.email)
         if existing_user:
+            log.warn("User already exists")
             raise ConflictError("User with this email already exists")
         
         # Create user
+        log.info("Hashing password")
+        hash_start = time.time()
+        hashed_password = await get_password_hash(user_data.password)
+        log.info("Password hashing complete", duration=time.time() - hash_start)
+
         user_dict = user_data.dict()
-        user_dict["hashed_password"] = await get_password_hash(user_data.password)
+        user_dict["hashed_password"] = hashed_password
         del user_dict["password"]
         
+        log.info("Creating user in repository")
         user = await self.user_repo.create_user(user_dict)
+        log.info("User created", user_id=user.id)
         
         # Create access and refresh tokens
+        log.info("Creating tokens")
         access_token = create_access_token(data={"sub": str(user.id)})
         refresh_token, expires_at = create_refresh_token(user.id)
         
         # Store refresh token
+        log.info("Storing refresh token")
         refresh_token_hash = await get_password_hash(refresh_token)
         await self.token_repo.create_token(user.id, refresh_token_hash, expires_at)
+        log.info("Refresh token stored")
         
         # Log audit
         await self.audit_repo.log_user_action(
@@ -67,6 +87,7 @@ class AuthService:
             payload={"email": user.email, "role": user.role.value}
         )
         
+        log.info("Registration process finished", duration=time.time() - start_time)
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -76,21 +97,41 @@ class AuthService:
     
     async def login_user(self, login_data: UserLogin) -> Dict[str, Any]:
         """Login a user."""
+        start_time = time.time()
+        log = logger.bind(email=login_data.email)
+        log.info("Login process started")
+
         # Find user by email
+        log.info("Finding user by email")
         user = await self.user_repo.get_by_email(login_data.email)
-        if not user or not await verify_password(login_data.password, user.hashed_password):
+
+        if not user:
+            log.warn("User not found")
+            raise AuthenticationError("Invalid email or password")
+
+        log.info("Verifying password")
+        verify_start = time.time()
+        password_valid = await verify_password(login_data.password, user.hashed_password)
+        log.info("Password verification complete", duration=time.time() - verify_start)
+
+        if not password_valid:
+            log.warn("Invalid password")
             raise AuthenticationError("Invalid email or password")
 
         if not user.is_active:
+            log.warn("User account is deactivated")
             raise AuthenticationError("User account is deactivated")
 
         # Create access and refresh tokens
+        log.info("Creating tokens")
         access_token = create_access_token(data={"sub": str(user.id)})
         refresh_token, expires_at = create_refresh_token(user.id)
 
         # Store refresh token
+        log.info("Storing refresh token")
         refresh_token_hash = await get_password_hash(refresh_token)
         await self.token_repo.create_token(user.id, refresh_token_hash, expires_at)
+        log.info("Refresh token stored")
 
         # Log audit
         await self.audit_repo.log_user_action(
@@ -101,6 +142,7 @@ class AuthService:
             payload={"email": user.email},
         )
         
+        log.info("Login process finished", duration=time.time() - start_time)
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
