@@ -2,6 +2,7 @@
 Security utilities for IQAutoJobs.
 """
 import asyncio
+from functools import wraps
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 from jose import JWTError, jwt
@@ -14,6 +15,15 @@ from app.core import executors
 # Password context
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
+def require_executor(func):
+    """Decorator to ensure the ProcessPoolExecutor is initialized."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if not executors.executor:
+            raise RuntimeError("ProcessPoolExecutor is not initialized.")
+        return await func(*args, **kwargs)
+    return wrapper
+
 def _verify_password_sync(plain_password: str, hashed_password: str) -> bool:
     """Synchronous password verification for process pool."""
     return pwd_context.verify(plain_password, hashed_password)
@@ -22,19 +32,17 @@ def _get_password_hash_sync(password: str) -> str:
     """Synchronous password hashing for process pool."""
     return pwd_context.hash(password)
 
+@require_executor
 async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash in a separate process."""
-    if not executors.executor:
-        raise RuntimeError("ProcessPoolExecutor is not initialized.")
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         executors.executor, _verify_password_sync, plain_password, hashed_password
     )
 
+@require_executor
 async def get_password_hash(password: str) -> str:
     """Generate password hash in a separate process."""
-    if not executors.executor:
-        raise RuntimeError("ProcessPoolExecutor is not initialized.")
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         executors.executor, _get_password_hash_sync, password
