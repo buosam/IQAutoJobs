@@ -1,6 +1,7 @@
 """
 FastAPI application for IQAutoJobs job board.
 """
+import asyncio
 from contextlib import asynccontextmanager
 from concurrent.futures import ProcessPoolExecutor
 from fastapi import FastAPI, Request
@@ -32,7 +33,8 @@ async def lifespan(app: FastAPI):
     yield
     # Shutdown executor on shutdown
     if executors.executor:
-        executors.executor.shutdown(wait=True)
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, executors.executor.shutdown, True)
         logger.info("Process pool executor shut down")
     logger.info("Application shutdown")
 
