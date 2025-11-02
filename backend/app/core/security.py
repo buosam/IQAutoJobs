@@ -2,7 +2,7 @@
 Security utilities for IQAutoJobs.
 """
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
+from functools import wraps
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 from jose import JWTError, jwt
@@ -10,26 +10,19 @@ from passlib.context import CryptContext
 from uuid import uuid4
 
 from app.core.config import settings
+from app.core import executors
 
 # Password context
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-# Process pool for CPU-bound tasks
-executor: Optional[ProcessPoolExecutor] = None
-
-def get_executor() -> ProcessPoolExecutor:
-    """Get the global process pool executor."""
-    global executor
-    if executor is None:
-        executor = ProcessPoolExecutor()
-    return executor
-
-def shutdown_executor():
-    """Shutdown the global process pool executor."""
-    global executor
-    if executor:
-        executor.shutdown(wait=True)
-        executor = None
+def require_executor(func):
+    """Decorator to ensure the ProcessPoolExecutor is initialized."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if not executors.executor:
+            raise RuntimeError("ProcessPoolExecutor is not initialized.")
+        return await func(*args, **kwargs)
+    return wrapper
 
 def _verify_password_sync(plain_password: str, hashed_password: str) -> bool:
     """Synchronous password verification for process pool."""
@@ -39,18 +32,20 @@ def _get_password_hash_sync(password: str) -> str:
     """Synchronous password hashing for process pool."""
     return pwd_context.hash(password)
 
+@require_executor
 async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash in a separate process."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        get_executor(), _verify_password_sync, plain_password, hashed_password
+        executors.executor, _verify_password_sync, plain_password, hashed_password
     )
 
+@require_executor
 async def get_password_hash(password: str) -> str:
     """Generate password hash in a separate process."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        get_executor(), _get_password_hash_sync, password
+        executors.executor, _get_password_hash_sync, password
     )
 
 

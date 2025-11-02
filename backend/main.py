@@ -1,6 +1,9 @@
 """
 FastAPI application for IQAutoJobs job board.
 """
+import asyncio
+from contextlib import asynccontextmanager
+from concurrent.futures import ProcessPoolExecutor
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -18,6 +21,7 @@ from app.core.errors import (
     http_exception_handler,
 )
 from app.api.routers import auth, jobs, applications, companies, admin, files, public, users, oauth
+from app.core import executors
 
 # Configure structured logging
 logger = get_logger()
@@ -26,15 +30,20 @@ logger = get_logger()
 async def lifespan(app: FastAPI):
     """Manage the application's lifespan."""
     logger.info("Application startup")
-    get_executor()
-    try:
-        yield
-    finally:
-        logger.info("Application shutdown")
-        shutdown_executor()
+    # Create executor on startup
+    executors.executor = ProcessPoolExecutor()
+    logger.info("Process pool executor created")
+    yield
+    # Shutdown executor on shutdown
+    if executors.executor:
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, executors.executor.shutdown, True)
+        logger.info("Process pool executor shut down")
+    logger.info("Application shutdown")
 
 # Create FastAPI app
 app = FastAPI(
+    lifespan=lifespan,
     title=settings.PROJECT_NAME,
     lifespan=lifespan,
     description="IQAutoJobs - A modern job board platform",
