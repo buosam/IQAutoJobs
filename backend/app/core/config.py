@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = Field(..., env="DATABASE_URL")
+    REDIS_URL: str = Field(default="redis://localhost:6379", env="REDIS_URL")
     
     # R2/S3 Storage
     R2_ACCOUNT_ID: str = Field(..., env="R2_ACCOUNT_ID")

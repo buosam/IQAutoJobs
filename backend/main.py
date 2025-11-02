@@ -9,8 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from structlog import get_logger
+from contextlib import asynccontextmanager
+from concurrent.futures import ProcessPoolExecutor
 
 from app.core.config import settings
+from app.core.security import get_executor, shutdown_executor
 from app.core.errors import (
     BaseHTTPException,
     base_exception_handler,
@@ -42,6 +45,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
     title=settings.PROJECT_NAME,
+    lifespan=lifespan,
     description="IQAutoJobs - A modern job board platform",
     version="1.0.0",
     docs_url="/api/docs" if settings.ENVIRONMENT == "development" else None,

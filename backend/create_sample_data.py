@@ -21,11 +21,12 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import text
+from sqlalchemy import text, delete
 
 from app.db.base import Base
-from app.db.models import User, Company, Job, Application, SavedJob, AuditLog
+from app.db.models import User, Company, Job, Application, SavedJob, AuditLog, UserRole
 from app.core.security import get_password_hash
+from app.repositories.base import BaseRepository
 from app.repositories.user_repo import UserRepository
 from app.repositories.company_repo import CompanyRepository
 from app.repositories.job_repo import JobRepository
@@ -42,7 +43,6 @@ SAMPLE_COMPANIES = [
         "location": "San Francisco, CA",
         "website": "https://techcorp.com",
         "size": "500-1000",
-        "founded_year": 2015
     },
     {
         "name": "InnovateLab",
@@ -51,7 +51,6 @@ SAMPLE_COMPANIES = [
         "location": "New York, NY",
         "website": "https://innovatelab.io",
         "size": "50-200",
-        "founded_year": 2020
     },
     {
         "name": "DataFlow Systems",
@@ -60,7 +59,6 @@ SAMPLE_COMPANIES = [
         "location": "Austin, TX",
         "website": "https://dataflow.com",
         "size": "200-500",
-        "founded_year": 2018
     },
     {
         "name": "CloudFirst Technologies",
@@ -69,7 +67,6 @@ SAMPLE_COMPANIES = [
         "location": "Seattle, WA",
         "website": "https://cloudfirst.tech",
         "size": "100-300",
-        "founded_year": 2017
     },
     {
         "name": "MobileFirst Apps",
@@ -78,7 +75,6 @@ SAMPLE_COMPANIES = [
         "location": "Los Angeles, CA",
         "website": "https://mobilefirst.com",
         "size": "30-100",
-        "founded_year": 2019
     }
 ]
 
@@ -86,7 +82,6 @@ SAMPLE_JOBS = [
     {
         "title": "Senior Frontend Developer",
         "description": "We are looking for a Senior Frontend Developer to join our team. You will be responsible for developing user-facing web applications using React, TypeScript, and modern frontend technologies.",
-        "requirements": "5+ years of experience with React and TypeScript\nStrong knowledge of HTML5, CSS3, and JavaScript\nExperience with state management (Redux, Context API)\nFamiliarity with testing frameworks (Jest, React Testing Library)\nBachelor's degree in Computer Science or related field",
         "category": "Engineering",
         "type": "Full-time",
         "experience_level": "Senior",
@@ -97,7 +92,6 @@ SAMPLE_JOBS = [
     {
         "title": "Backend Software Engineer",
         "description": "Join our backend team to build scalable APIs and microservices. You'll work with Python, FastAPI, and PostgreSQL to create robust server-side applications.",
-        "requirements": "3+ years of Python development experience\nExperience with FastAPI or similar frameworks\nKnowledge of PostgreSQL and database design\nUnderstanding of RESTful API design principles\nExperience with cloud platforms (AWS, GCP, Azure)",
         "category": "Engineering",
         "type": "Full-time",
         "experience_level": "Mid-Level",
@@ -108,7 +102,6 @@ SAMPLE_JOBS = [
     {
         "title": "Data Scientist",
         "description": "We're seeking a Data Scientist to help us extract insights from large datasets and build machine learning models. You'll work with Python, TensorFlow, and various data visualization tools.",
-        "requirements": "PhD or Master's in Data Science, Statistics, or related field\nStrong programming skills in Python\nExperience with machine learning frameworks (TensorFlow, PyTorch)\nKnowledge of statistical analysis and data visualization\nExperience with big data technologies (Spark, Hadoop)",
         "category": "Data Science",
         "type": "Full-time",
         "experience_level": "Senior",
@@ -119,7 +112,6 @@ SAMPLE_JOBS = [
     {
         "title": "DevOps Engineer",
         "description": "Looking for a DevOps Engineer to automate our infrastructure and deployment processes. You'll work with Docker, Kubernetes, and CI/CD pipelines to ensure smooth operations.",
-        "requirements": "Experience with containerization (Docker, Kubernetes)\nKnowledge of CI/CD pipelines (Jenkins, GitLab CI)\nFamiliarity with cloud infrastructure (AWS, GCP)\nUnderstanding of infrastructure as code (Terraform, Ansible)\nExperience with monitoring and logging tools",
         "category": "DevOps",
         "type": "Full-time",
         "experience_level": "Mid-Level",
@@ -130,7 +122,6 @@ SAMPLE_JOBS = [
     {
         "title": "UX/UI Designer",
         "description": "Join our design team to create beautiful and intuitive user interfaces. You'll work closely with product managers and developers to deliver exceptional user experiences.",
-        "requirements": "3+ years of UX/UI design experience\nProficiency in design tools (Figma, Sketch, Adobe Creative Suite)\nStrong portfolio demonstrating design skills\nUnderstanding of user-centered design principles\nExperience with design systems and component libraries",
         "category": "Design",
         "type": "Full-time",
         "experience_level": "Mid-Level",
@@ -221,124 +212,133 @@ async def create_sample_data():
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
     
     async with async_session() as session:
-        # Create repositories
-        user_repo = UserRepository(session)
-        company_repo = CompanyRepository(session)
-        job_repo = JobRepository(session)
-        application_repo = ApplicationRepository(session)
-        saved_job_repo = SavedJobRepository(session)
-        audit_repo = AuditLogRepository(session)
-        
-        print("Creating sample data...")
-        
-        # Create users
-        users = []
-        for user_data in SAMPLE_USERS:
-            user_create_data = user_data.copy()
-            user_create_data["hashed_password"] = get_password_hash(user_create_data.pop("password"))
-            user = await user_repo.create_user(user_create_data)
-            users.append(user)
-            print(f"Created user: {user.first_name} {user.last_name}")
-        
-        # Create companies
-        companies = []
-        for i, company_data in enumerate(SAMPLE_COMPANIES):
-            company = Company(
-                id=str(uuid.uuid4()),
-                name=company_data["name"],
-                description=company_data["description"],
-                industry=company_data["industry"],
-                location=company_data["location"],
-                website=company_data["website"],
-                size=company_data["size"],
-                founded_year=company_data["founded_year"],
-                user_id=users[2 + (i % 2)].id,  # Assign to employer users
-                created_at=datetime.now() - timedelta(days=random.randint(1, 300))
-            )
-            companies.append(await company_repo.create(company))
-            print(f"Created company: {company.name}")
-        
-        # Create jobs
-        jobs = []
-        for i, job_data in enumerate(SAMPLE_JOBS):
-            job = Job(
-                id=str(uuid.uuid4()),
-                title=job_data["title"],
-                description=job_data["description"],
-                requirements=job_data["requirements"],
-                category=job_data["category"],
-                type=job_data["type"],
-                experience_level=job_data["experience_level"],
-                salary_min=job_data["salary_min"],
-                salary_max=job_data["salary_max"],
-                currency=job_data["currency"],
-                location=random.choice(LOCATIONS),
-                company_id=companies[i % len(companies)].id,
-                status="active",
-                created_at=datetime.now() - timedelta(days=random.randint(1, 60))
-            )
-            jobs.append(await job_repo.create(job))
-            print(f"Created job: {job.title} at {companies[i % len(companies)].name}")
-        
-        # Create applications
-        application_statuses = ["pending", "reviewed", "interviewed", "rejected", "hired"]
-        for i in range(20):  # Create 20 applications
-            candidate = random.choice([u for u in users if u.role == "candidate"])
-            job = random.choice(jobs)
+        try:
+            # Clean the database
+            await session.execute(delete(AuditLog))
+            await session.execute(delete(SavedJob))
+            await session.execute(delete(Application))
+            await session.execute(delete(Job))
+            await session.execute(delete(Company))
+            await session.execute(delete(User))
+            await session.commit()
+            print("Database cleaned.")
+
+            # Create repositories
+            user_repo = UserRepository(session)
+            company_repo = CompanyRepository(session)
+            job_repo = JobRepository(session)
+            application_repo = ApplicationRepository(session)
+            saved_job_repo = SavedJobRepository(session)
+            audit_repo = AuditLogRepository(session)
+
+            print("Creating sample data...")
+
+            # Create users
+            users = []
+            for user_data in SAMPLE_USERS:
+                user_create_data = user_data.copy()
+                user_create_data["hashed_password"] = await get_password_hash(user_create_data.pop("password"))
+                user_create_data["role"] = user_create_data["role"].upper()
+                user = await user_repo.create(user_create_data)
+                users.append(user)
+                print(f"Created user: {user.first_name} {user.last_name}")
+
+            # Create companies
+            companies = []
+            for i, company_data in enumerate(SAMPLE_COMPANIES):
+                company_create_data = company_data.copy()
+                company_create_data["id"] = uuid.uuid4()
+                company_create_data["owner_user_id"] = users[2 + (i % 2)].id
+                company_create_data["slug"] = company_create_data["name"].lower().replace(" ", "-")
+                company = await company_repo.create(company_create_data)
+                companies.append(company)
+                print(f"Created company: {company.name}")
             
-            application = Application(
-                id=str(uuid.uuid4()),
-                candidate_id=candidate.id,
-                job_id=job.id,
-                status=random.choice(application_statuses),
-                cover_letter=f"I am excited to apply for the {job.title} position at {job.company.name}. My skills and experience make me a strong candidate for this role.",
-                applied_at=datetime.now() - timedelta(days=random.randint(1, 30)),
-                last_updated=datetime.now() - timedelta(days=random.randint(0, 7))
-            )
-            await application_repo.create(application)
-            print(f"Created application: {candidate.first_name} {candidate.last_name} -> {job.title}")
-        
-        # Create saved jobs
-        for i in range(15):  # Create 15 saved jobs
-            candidate = random.choice([u for u in users if u.role == "candidate"])
-            job = random.choice(jobs)
+            # Create jobs
+            jobs = []
+            for i, job_data in enumerate(SAMPLE_JOBS):
+                job_create_data = job_data.copy()
+                job_create_data["id"] = uuid.uuid4()
+                job_create_data["location"] = random.choice(LOCATIONS)
+                job_create_data["company_id"] = companies[i % len(companies)].id
+                job_create_data["status"] = "PUBLISHED"
+                job_create_data["slug"] = job_create_data["title"].lower().replace(" ", "-")
+                if job_create_data["type"] == "Full-time":
+                    job_create_data["type"] = "FT"
+                elif job_create_data["type"] == "Part-time":
+                    job_create_data["type"] = "PT"
+                elif job_create_data["type"] == "Contract":
+                    job_create_data["type"] = "CONTRACT"
+                elif job_create_data["type"] == "Internship":
+                    job_create_data["type"] = "INTERN"
+                job = await job_repo.create(job_create_data)
+                jobs.append(job)
+                print(f"Created job: {job.title} at {companies[i % len(companies)].name}")
+
+            # Create applications
+            application_statuses = ["RECEIVED", "SHORTLISTED", "INTERVIEW", "REJECTED", "HIRED"]
+            for i in range(20):  # Create 20 applications
+                candidate = random.choice([u for u in users if u.role == UserRole.CANDIDATE])
+                job = random.choice(jobs)
+
+                application_create_data = {
+                    "id": uuid.uuid4(),
+                    "candidate_user_id": candidate.id,
+                    "job_id": job.id,
+                    "status": random.choice(application_statuses),
+                    "cover_letter": f"I am excited to apply for the {job.title} position at {job.company.name}. My skills and experience make me a strong candidate for this role.",
+                    "cv_key": "dummy_cv.pdf"
+                }
+                await application_repo.create(application_create_data)
+                print(f"Created application: {candidate.first_name} {candidate.last_name} -> {job.title}")
+
+            # Create saved jobs
+            saved_jobs_set = set()
+            for i in range(15):  # Create 15 saved jobs
+                candidate = random.choice([u for u in users if u.role == UserRole.CANDIDATE])
+                job = random.choice(jobs)
+
+                if (candidate.id, job.id) in saved_jobs_set:
+                    continue
+
+                saved_job_create_data = {
+                    "id": uuid.uuid4(),
+                    "user_id": candidate.id,
+                    "job_id": job.id,
+                }
+                await saved_job_repo.create(saved_job_create_data)
+                saved_jobs_set.add((candidate.id, job.id))
+                print(f"Created saved job: {candidate.first_name} {candidate.last_name} saved {job.title}")
             
-            saved_job = SavedJob(
-                id=str(uuid.uuid4()),
-                candidate_id=candidate.id,
-                job_id=job.id,
-                created_at=datetime.now() - timedelta(days=random.randint(1, 45))
-            )
-            await saved_job_repo.create(saved_job)
-            print(f"Created saved job: {candidate.first_name} {candidate.last_name} saved {job.title}")
-        
-        # Create audit logs
-        actions = ["create", "update", "delete", "login", "logout"]
-        for i in range(50):  # Create 50 audit logs
-            user = random.choice(users)
-            action = random.choice(actions)
+            # Create audit logs
+            actions = ["USER_LOGIN", "USER_LOGOUT", "JOB_CREATE", "JOB_UPDATE", "APPLICATION_SUBMIT"]
+            for i in range(50):  # Create 50 audit logs
+                user = random.choice(users)
+                action = random.choice(actions)
+
+                audit_log_create_data = {
+                    "id": uuid.uuid4(),
+                    "actor_user_id": user.id,
+                    "action": action,
+                    "subject_type": random.choice(["user", "company", "job", "application"]),
+                    "subject_id": str(uuid.uuid4()),
+                    "payload": {"details": f"User {user.first_name} {user.last_name} performed {action} action"},
+                }
+                await audit_repo.create(audit_log_create_data)
+                print(f"Created audit log: {user.first_name} {user.last_name} - {action}")
             
-            audit_log = AuditLog(
-                id=str(uuid.uuid4()),
-                user_id=user.id,
-                action=action,
-                target_type=random.choice(["user", "company", "job", "application"]),
-                target_id=str(uuid.uuid4()),
-                details=f"User {user.first_name} {user.last_name} performed {action} action",
-                ip_address=f"192.168.1.{random.randint(1, 254)}",
-                user_agent="Mozilla/5.0 (Sample User Agent)",
-                timestamp=datetime.now() - timedelta(hours=random.randint(1, 720))
-            )
-            await audit_repo.create(audit_log)
-            print(f"Created audit log: {user.first_name} {user.last_name} - {action}")
-        
-        print("\nSample data creation completed!")
-        print(f"Created {len(users)} users")
-        print(f"Created {len(companies)} companies")
-        print(f"Created {len(jobs)} jobs")
-        print(f"Created 20 applications")
-        print(f"Created 15 saved jobs")
-        print(f"Created 50 audit logs")
+            print("\nSample data creation completed!")
+            print(f"Created {len(users)} users")
+            print(f"Created {len(companies)} companies")
+            print(f"Created {len(jobs)} jobs")
+            print(f"Created 20 applications")
+            print(f"Created 15 saved jobs")
+            print(f"Created 50 audit logs")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            await session.rollback()
+        finally:
+            await session.close()
 
 if __name__ == "__main__":
     asyncio.run(create_sample_data())
