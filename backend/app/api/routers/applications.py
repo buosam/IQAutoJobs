@@ -24,7 +24,7 @@ logger = get_logger()
 router = APIRouter()
 
 
-def get_application_service(db: Session) -> ApplicationService:
+async def get_application_service(db: Session = Depends(get_db)) -> ApplicationService:
     """Get application service instance."""
     app_repo = ApplicationRepository(db)
     job_repo = JobRepository(db)
@@ -40,17 +40,15 @@ async def get_applications(
     skip: int = Query(0, ge=0, description="Skip count"),
     limit: int = Query(100, ge=1, le=100, description="Limit count"),
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    app_service: ApplicationService = Depends(get_application_service)
 ):
     """Get applications for current user's company."""
-    app_service = get_application_service(db)
-    
     if job_id:
-        return app_service.get_applications_by_job(job_id, skip, limit)
+        return await app_service.get_applications_by_job(job_id, skip, limit)
     elif status:
-        return app_service.get_applications_by_status(status, skip, limit)
+        return await app_service.get_applications_by_status(status, skip, limit)
     else:
-        return app_service.get_applications_by_company(current_user.id, skip, limit)
+        return await app_service.get_applications_by_company(current_user.id, skip, limit)
 
 
 @router.get("/my-applications", response_model=list[ApplicationResponse])
@@ -58,24 +56,21 @@ async def get_my_applications(
     skip: int = Query(0, ge=0, description="Skip count"),
     limit: int = Query(100, ge=1, le=100, description="Limit count"),
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    app_service: ApplicationService = Depends(get_application_service)
 ):
     """Get applications for current user (candidate)."""
-    app_service = get_application_service(db)
-    return app_service.get_applications_by_candidate(current_user.id, skip, limit)
+    return await app_service.get_applications_by_candidate(current_user.id, skip, limit)
 
 
 @router.get("/{application_id}", response_model=ApplicationResponse)
 async def get_application(
     application_id: str,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    app_service: ApplicationService = Depends(get_application_service)
 ):
     """Get application by ID."""
-    app_service = get_application_service(db)
-    
     try:
-        application = app_service.get_application_by_id(application_id)
+        application = await app_service.get_application_by_id(application_id)
         
         # Check if user has permission to view this application
         if (application.job.company.owner_user_id != current_user.id and 
@@ -93,10 +88,9 @@ async def create_application(
     cover_letter: Optional[str] = None,
     file: UploadFile = File(...),
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    app_service: ApplicationService = Depends(get_application_service)
 ):
     """Create a new application."""
-    app_service = get_application_service(db)
     file_service = FileService()
     
     try:
@@ -124,7 +118,7 @@ async def create_application(
             cover_letter=cover_letter
         )
         
-        return app_service.create_application(application_data, current_user.id, cv_key)
+        return await app_service.create_application(application_data, current_user.id, cv_key)
     
     except ConflictError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
@@ -140,13 +134,11 @@ async def update_application_status(
     application_id: str,
     status: ApplicationStatus,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    app_service: ApplicationService = Depends(get_application_service)
 ):
     """Update application status."""
-    app_service = get_application_service(db)
-    
     try:
-        return app_service.update_application_status(application_id, status, current_user.id)
+        return await app_service.update_application_status(application_id, status, current_user.id)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ConflictError as e:
@@ -160,14 +152,13 @@ async def update_application_status(
 async def get_application_cv(
     application_id: str,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    app_service: ApplicationService = Depends(get_application_service)
 ):
     """Get application CV download URL."""
-    app_service = get_application_service(db)
     file_service = FileService()
     
     try:
-        application = app_service.get_application_by_id(application_id)
+        application = await app_service.get_application_by_id(application_id)
         
         # Check if user has permission to view this CV
         if (application.job.company.owner_user_id != current_user.id and 

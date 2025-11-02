@@ -6,8 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 from structlog import get_logger
+from contextlib import asynccontextmanager
+from concurrent.futures import ProcessPoolExecutor
 
 from app.core.config import settings
+from app.core.security import get_executor, shutdown_executor
 from app.core.errors import (
     BaseHTTPException,
     base_exception_handler,
@@ -19,9 +22,21 @@ from app.api.routers import auth, jobs, applications, companies, admin, files, p
 # Configure structured logging
 logger = get_logger()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage the application's lifespan."""
+    logger.info("Application startup")
+    get_executor()
+    try:
+        yield
+    finally:
+        logger.info("Application shutdown")
+        shutdown_executor()
+
 # Create FastAPI app
 app = FastAPI(
     title=settings.PROJECT_NAME,
+    lifespan=lifespan,
     description="IQAutoJobs - A modern job board platform",
     version="1.0.0",
     docs_url="/api/docs" if settings.ENVIRONMENT == "development" else None,

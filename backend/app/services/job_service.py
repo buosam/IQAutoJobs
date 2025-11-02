@@ -32,41 +32,41 @@ class JobService:
         self.company_repo = company_repo
         self.audit_repo = audit_repo
     
-    def get_job_by_id(self, job_id: UUID) -> Optional[JobResponse]:
+    async def get_job_by_id(self, job_id: UUID) -> Optional[JobResponse]:
         """Get job by ID."""
-        job = self.job_repo.get_job_with_company(job_id)
+        job = await self.job_repo.get_job_with_company(job_id)
         if not job:
             raise NotFoundError("Job not found")
         
         return JobResponse.from_orm(job)
     
-    def get_job_by_slug(self, slug: str) -> Optional[JobResponse]:
+    async def get_job_by_slug(self, slug: str) -> Optional[JobResponse]:
         """Get job by slug."""
-        job = self.job_repo.get_by_slug(slug)
+        job = await self.job_repo.get_by_slug(slug)
         if not job:
             return None
         
         return JobResponse.from_orm(job)
     
-    def get_jobs(self, skip: int = 0, limit: int = 100) -> List[JobResponse]:
+    async def get_jobs(self, skip: int = 0, limit: int = 100) -> List[JobResponse]:
         """Get jobs with pagination."""
-        jobs = self.job_repo.get_multi(skip=skip, limit=limit)
+        jobs = await self.job_repo.get_multi(skip=skip, limit=limit)
         return [JobResponse.from_orm(job) for job in jobs]
     
-    def get_published_jobs(self, skip: int = 0, limit: int = 100) -> List[JobResponse]:
+    async def get_published_jobs(self, skip: int = 0, limit: int = 100) -> List[JobResponse]:
         """Get published jobs."""
-        jobs = self.job_repo.get_published_jobs(skip=skip, limit=limit)
+        jobs = await self.job_repo.get_published_jobs(skip=skip, limit=limit)
         return [JobResponse.from_orm(job) for job in jobs]
     
-    def get_jobs_by_company(self, company_id: UUID, skip: int = 0, limit: int = 100) -> List[JobResponse]:
+    async def get_jobs_by_company(self, company_id: UUID, skip: int = 0, limit: int = 100) -> List[JobResponse]:
         """Get jobs by company."""
-        jobs = self.job_repo.get_jobs_by_company(company_id, skip=skip, limit=limit)
+        jobs = await self.job_repo.get_jobs_by_company(company_id, skip=skip, limit=limit)
         return [JobResponse.from_orm(job) for job in jobs]
     
-    def create_job(self, job_data: JobCreate, company_id: UUID, user_id: UUID) -> JobResponse:
+    async def create_job(self, job_data: JobCreate, company_id: UUID, user_id: UUID) -> JobResponse:
         """Create a new job."""
         # Check if company exists and user owns it
-        company = self.company_repo.get(company_id)
+        company = await self.company_repo.get(company_id)
         if not company:
             raise NotFoundError("Company not found")
         
@@ -77,17 +77,17 @@ class JobService:
         slug = self._generate_slug(job_data.title)
         
         # Check if slug is available for this company
-        if not self.job_repo.is_slug_available(company_id, slug):
+        if not await self.job_repo.is_slug_available(company_id, slug):
             raise ConflictError("Job title is already taken for this company")
         
         job_dict = job_data.dict()
         job_dict["company_id"] = company_id
         job_dict["slug"] = slug
         
-        job = self.job_repo.create(job_dict)
+        job = await self.job_repo.create(job_dict)
         
         # Log audit
-        self.audit_repo.log_user_action(
+        await self.audit_repo.log_user_action(
             action="JOB_CREATE",
             user_id=user_id,
             subject_type="Job",
@@ -97,9 +97,9 @@ class JobService:
         
         return JobResponse.from_orm(job)
     
-    def update_job(self, job_id: UUID, job_data: JobUpdate, user_id: UUID) -> JobResponse:
+    async def update_job(self, job_id: UUID, job_data: JobUpdate, user_id: UUID) -> JobResponse:
         """Update a job."""
-        job = self.job_repo.get(job_id)
+        job = await self.job_repo.get(job_id)
         if not job:
             raise NotFoundError("Job not found")
         
@@ -114,7 +114,7 @@ class JobService:
         if "title" in update_data:
             new_slug = self._generate_slug(update_data["title"])
             if new_slug != job.slug:
-                if not self.job_repo.is_slug_available(job.company_id, new_slug, job_id):
+                if not await self.job_repo.is_slug_available(job.company_id, new_slug, job_id):
                     raise ConflictError("Job title is already taken for this company")
                 update_data["slug"] = new_slug
         
@@ -123,10 +123,10 @@ class JobService:
             if job.status != JobStatus.PUBLISHED:
                 update_data["published_at"] = datetime.utcnow()
         
-        job = self.job_repo.update(job, update_data)
+        job = await self.job_repo.update(job, update_data)
         
         # Log audit
-        self.audit_repo.log_user_action(
+        await self.audit_repo.log_user_action(
             action="JOB_UPDATE",
             user_id=user_id,
             subject_type="Job",
@@ -136,9 +136,9 @@ class JobService:
         
         return JobResponse.from_orm(job)
     
-    def publish_job(self, job_id: UUID, user_id: UUID) -> JobResponse:
+    async def publish_job(self, job_id: UUID, user_id: UUID) -> JobResponse:
         """Publish a job."""
-        job = self.job_repo.get(job_id)
+        job = await self.job_repo.get(job_id)
         if not job:
             raise NotFoundError("Job not found")
         
@@ -149,11 +149,11 @@ class JobService:
         # Update job status
         job.status = JobStatus.PUBLISHED
         job.published_at = datetime.utcnow()
-        self.db.commit()
-        self.db.refresh(job)
+        await self.db.commit()
+        await self.db.refresh(job)
         
         # Log audit
-        self.audit_repo.log_user_action(
+        await self.audit_repo.log_user_action(
             action="JOB_PUBLISH",
             user_id=user_id,
             subject_type="Job",
@@ -162,9 +162,9 @@ class JobService:
         
         return JobResponse.from_orm(job)
     
-    def close_job(self, job_id: UUID, user_id: UUID) -> JobResponse:
+    async def close_job(self, job_id: UUID, user_id: UUID) -> JobResponse:
         """Close a job."""
-        job = self.job_repo.get(job_id)
+        job = await self.job_repo.get(job_id)
         if not job:
             raise NotFoundError("Job not found")
         
@@ -174,11 +174,11 @@ class JobService:
         
         # Update job status
         job.status = JobStatus.CLOSED
-        self.db.commit()
-        self.db.refresh(job)
+        await self.db.commit()
+        await self.db.refresh(job)
         
         # Log audit
-        self.audit_repo.log_user_action(
+        await self.audit_repo.log_user_action(
             action="JOB_CLOSE",
             user_id=user_id,
             subject_type="Job",
@@ -187,11 +187,11 @@ class JobService:
         
         return JobResponse.from_orm(job)
     
-    def search_jobs(self, filters: JobSearchFilters, page: int = 1, size: int = 20) -> JobSearchResponse:
+    async def search_jobs(self, filters: JobSearchFilters, page: int = 1, size: int = 20) -> JobSearchResponse:
         """Search jobs with filters."""
         skip = (page - 1) * size
         
-        jobs = self.job_repo.search_jobs(
+        jobs = await self.job_repo.search_jobs(
             search_term=filters.search,
             location=filters.location,
             employment_type=filters.type,
@@ -204,7 +204,7 @@ class JobService:
             limit=size
         )
         
-        total = self.job_repo.count_search_jobs(
+        total = await self.job_repo.count_search_jobs(
             search_term=filters.search,
             location=filters.location,
             employment_type=filters.type,
@@ -225,24 +225,24 @@ class JobService:
             pages=pages
         )
     
-    def get_recent_jobs(self, limit: int = 10) -> List[JobResponse]:
+    async def get_recent_jobs(self, limit: int = 10) -> List[JobResponse]:
         """Get recent published jobs."""
-        jobs = self.job_repo.get_recent_jobs(limit)
+        jobs = await self.job_repo.get_recent_jobs(limit)
         return [JobResponse.from_orm(job) for job in jobs]
     
-    def get_jobs_by_type(self, employment_type: EmploymentType, skip: int = 0, limit: int = 100) -> List[JobResponse]:
+    async def get_jobs_by_type(self, employment_type: EmploymentType, skip: int = 0, limit: int = 100) -> List[JobResponse]:
         """Get jobs by employment type."""
-        jobs = self.job_repo.get_jobs_by_type(employment_type, skip, limit)
+        jobs = await self.job_repo.get_jobs_by_type(employment_type, skip, limit)
         return [JobResponse.from_orm(job) for job in jobs]
     
-    def get_jobs_by_category(self, category: str, skip: int = 0, limit: int = 100) -> List[JobResponse]:
+    async def get_jobs_by_category(self, category: str, skip: int = 0, limit: int = 100) -> List[JobResponse]:
         """Get jobs by category."""
-        jobs = self.job_repo.get_jobs_by_category(category, skip, limit)
+        jobs = await self.job_repo.get_jobs_by_category(category, skip, limit)
         return [JobResponse.from_orm(job) for job in jobs]
     
-    def get_jobs_by_location(self, location: str, skip: int = 0, limit: int = 100) -> List[JobResponse]:
+    async def get_jobs_by_location(self, location: str, skip: int = 0, limit: int = 100) -> List[JobResponse]:
         """Get jobs by location."""
-        jobs = self.job_repo.get_jobs_by_location(location, skip, limit)
+        jobs = await self.job_repo.get_jobs_by_location(location, skip, limit)
         return [JobResponse.from_orm(job) for job in jobs]
     
     def _generate_slug(self, title: str) -> str:

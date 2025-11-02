@@ -26,7 +26,7 @@ logger = get_logger()
 router = APIRouter()
 
 
-def get_job_service(db: Session) -> JobService:
+async def get_job_service(db: Session = Depends(get_db)) -> JobService:
     """Get job service instance."""
     job_repo = JobRepository(db)
     company_repo = CompanyRepository(db)
@@ -45,11 +45,9 @@ async def get_jobs(
     salary_max: Optional[int] = Query(None, description="Maximum salary"),
     page: int = Query(1, ge=1, description="Page number"),
     size: int = Query(20, ge=1, le=100, description="Page size"),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Get jobs with search and filters."""
-    job_service = get_job_service(db)
-    
     filters = JobSearchFilters(
         search=search,
         location=location,
@@ -60,17 +58,16 @@ async def get_jobs(
         salary_max=salary_max
     )
     
-    return job_service.search_jobs(filters, page, size)
+    return await job_service.search_jobs(filters, page, size)
 
 
 @router.get("/recent", response_model=list[JobResponse])
 async def get_recent_jobs(
     limit: int = Query(10, ge=1, le=50, description="Number of recent jobs"),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Get recent published jobs."""
-    job_service = get_job_service(db)
-    return job_service.get_recent_jobs(limit)
+    return await job_service.get_recent_jobs(limit)
 
 
 @router.get("/by-type/{employment_type}", response_model=list[JobResponse])
@@ -78,11 +75,10 @@ async def get_jobs_by_type(
     employment_type: EmploymentType,
     skip: int = Query(0, ge=0, description="Skip count"),
     limit: int = Query(100, ge=1, le=100, description="Limit count"),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Get jobs by employment type."""
-    job_service = get_job_service(db)
-    return job_service.get_jobs_by_type(employment_type, skip, limit)
+    return await job_service.get_jobs_by_type(employment_type, skip, limit)
 
 
 @router.get("/by-category/{category}", response_model=list[JobResponse])
@@ -90,11 +86,10 @@ async def get_jobs_by_category(
     category: str,
     skip: int = Query(0, ge=0, description="Skip count"),
     limit: int = Query(100, ge=1, le=100, description="Limit count"),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Get jobs by category."""
-    job_service = get_job_service(db)
-    return job_service.get_jobs_by_category(category, skip, limit)
+    return await job_service.get_jobs_by_category(category, skip, limit)
 
 
 @router.get("/by-location/{location}", response_model=list[JobResponse])
@@ -102,28 +97,25 @@ async def get_jobs_by_location(
     location: str,
     skip: int = Query(0, ge=0, description="Skip count"),
     limit: int = Query(100, ge=1, le=100, description="Limit count"),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Get jobs by location."""
-    job_service = get_job_service(db)
-    return job_service.get_jobs_by_location(location, skip, limit)
+    return await job_service.get_jobs_by_location(location, skip, limit)
 
 
 @router.get("/{job_id}", response_model=JobResponse)
-async def get_job(job_id: str, db: Session = Depends(get_db)):
+async def get_job(job_id: str, job_service: JobService = Depends(get_job_service)):
     """Get job by ID."""
-    job_service = get_job_service(db)
     try:
-        return job_service.get_job_by_id(job_id)
+        return await job_service.get_job_by_id(job_id)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("/slug/{slug}", response_model=JobResponse)
-async def get_job_by_slug(slug: str, db: Session = Depends(get_db)):
+async def get_job_by_slug(slug: str, job_service: JobService = Depends(get_job_service)):
     """Get job by slug."""
-    job_service = get_job_service(db)
-    job = job_service.get_job_by_slug(slug)
+    job = await job_service.get_job_by_slug(slug)
     if not job:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
     return job
@@ -133,13 +125,11 @@ async def get_job_by_slug(slug: str, db: Session = Depends(get_db)):
 async def create_job(
     job_data: JobCreate,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Create a new job."""
-    job_service = get_job_service(db)
-    
     try:
-        return job_service.create_job(job_data, current_user.id)
+        return await job_service.create_job(job_data, current_user.id)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ConflictError as e:
@@ -154,13 +144,11 @@ async def update_job(
     job_id: str,
     job_data: JobUpdate,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Update a job."""
-    job_service = get_job_service(db)
-    
     try:
-        return job_service.update_job(job_id, job_data, current_user.id)
+        return await job_service.update_job(job_id, job_data, current_user.id)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ConflictError as e:
@@ -174,13 +162,11 @@ async def update_job(
 async def publish_job(
     job_id: str,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Publish a job."""
-    job_service = get_job_service(db)
-    
     try:
-        return job_service.publish_job(job_id, current_user.id)
+        return await job_service.publish_job(job_id, current_user.id)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ConflictError as e:
@@ -194,13 +180,11 @@ async def publish_job(
 async def close_job(
     job_id: str,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Close a job."""
-    job_service = get_job_service(db)
-    
     try:
-        return job_service.close_job(job_id, current_user.id)
+        return await job_service.close_job(job_id, current_user.id)
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ConflictError as e:
@@ -214,14 +198,12 @@ async def close_job(
 async def delete_job(
     job_id: str,
     current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    job_service: JobService = Depends(get_job_service)
 ):
     """Delete a job."""
-    job_service = get_job_service(db)
-    
     try:
         # Get job to check ownership
-        job = job_service.job_repo.get_job_with_company(job_id)
+        job = await job_service.job_repo.get_job_with_company(job_id)
         if not job:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
         
@@ -230,7 +212,7 @@ async def delete_job(
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have permission to delete this job")
         
         # Delete job
-        job_service.job_repo.delete(job_id)
+        await job_service.job_repo.delete(job_id)
         
         return {"message": "Job deleted successfully"}
     except HTTPException:

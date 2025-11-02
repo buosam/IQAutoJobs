@@ -15,7 +15,21 @@ from app.core.config import settings
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 # Process pool for CPU-bound tasks
-executor = ProcessPoolExecutor()
+executor: Optional[ProcessPoolExecutor] = None
+
+def get_executor() -> ProcessPoolExecutor:
+    """Get the global process pool executor."""
+    global executor
+    if executor is None:
+        executor = ProcessPoolExecutor()
+    return executor
+
+def shutdown_executor():
+    """Shutdown the global process pool executor."""
+    global executor
+    if executor:
+        executor.shutdown(wait=True)
+        executor = None
 
 def _verify_password_sync(plain_password: str, hashed_password: str) -> bool:
     """Synchronous password verification for process pool."""
@@ -29,14 +43,14 @@ async def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash in a separate process."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        executor, _verify_password_sync, plain_password, hashed_password
+        get_executor(), _verify_password_sync, plain_password, hashed_password
     )
 
 async def get_password_hash(password: str) -> str:
     """Generate password hash in a separate process."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        executor, _get_password_hash_sync, password
+        get_executor(), _get_password_hash_sync, password
     )
 
 
